@@ -1,0 +1,26 @@
+# Artifact (machine-specific benchmark data)
+# It is intentionally versioned so history accumulates across clones.
+# Uncomment below to exclude it from git:
+# artifact/transfer-profile.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/settings.json
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

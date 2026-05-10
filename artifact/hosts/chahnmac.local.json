@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "generated_on": "2026-05-10T23:21:54.613848+00:00",
+  "generated_on": "2026-05-10T23:49:35.001380+00:00",
   "host": {
     "hostname": "chahnmac.local",
     "os": "macos",
@@ -9,8 +9,8 @@
   },
   "hardware_baseline": {
     "disk": {
-      "sequential_read_MBps": 12866.32,
-      "sequential_write_MBps": 4296.41,
+      "sequential_read_MBps": 13549.24,
+      "sequential_write_MBps": 7157.4,
       "device_type": "SSD",
       "interface": null,
       "test_file_size_MB": 256,
@@ -180,18 +180,91 @@
       "target": "192.168.1.1",
       "packets_sent": 10,
       "packet_loss_pct": 0.0,
-      "min_ms": 4.226,
-      "avg_ms": 5.455,
-      "max_ms": 7.074,
-      "jitter_ms": 0.878
+      "min_ms": 4.802,
+      "avg_ms": 6.07,
+      "max_ms": 7.509,
+      "jitter_ms": 0.768
     },
     "mtu": {
       "target": "192.168.1.1",
-      "effective_mtu": 1500,
+      "effective_mtu": 4000,
       "interface_mtu": 1500,
       "warning": null
     },
-    "interfaces": [],
+    "interfaces": [
+      {
+        "name": "Ethernet Adapter (en4)",
+        "device": "en4",
+        "type": "Ethernet",
+        "negotiated_speed_Mbps": null,
+        "full_duplex": null,
+        "ip_address": null
+      },
+      {
+        "name": "Ethernet Adapter (en5)",
+        "device": "en5",
+        "type": "Ethernet",
+        "negotiated_speed_Mbps": null,
+        "full_duplex": null,
+        "ip_address": null
+      },
+      {
+        "name": "Ethernet Adapter (en6)",
+        "device": "en6",
+        "type": "Ethernet",
+        "negotiated_speed_Mbps": null,
+        "full_duplex": null,
+        "ip_address": null
+      },
+      {
+        "name": "en1",
+        "device": "en1",
+        "type": "Ethernet",
+        "negotiated_speed_Mbps": null,
+        "full_duplex": null,
+        "ip_address": null
+      },
+      {
+        "name": "en2",
+        "device": "en2",
+        "type": "Ethernet",
+        "negotiated_speed_Mbps": null,
+        "full_duplex": null,
+        "ip_address": null
+      },
+      {
+        "name": "en3",
+        "device": "en3",
+        "type": "Ethernet",
+        "negotiated_speed_Mbps": null,
+        "full_duplex": null,
+        "ip_address": null
+      },
+      {
+        "name": "Thunderbolt Bridge",
+        "device": "bridge0",
+        "type": "Thunderbolt",
+        "negotiated_speed_Mbps": null,
+        "full_duplex": null,
+        "ip_address": null
+      },
+      {
+        "name": "Wi-Fi",
+        "device": "en0",
+        "type": "Wi-Fi",
+        "negotiated_speed_Mbps": null,
+        "full_duplex": null,
+        "ip_address": "192.168.1.16"
+      },
+      {
+        "name": "bridge100",
+        "device": "bridge100",
+        "type": "Bridge",
+        "negotiated_speed_Mbps": null,
+        "full_duplex": null,
+        "ip_address": null
+      }
+    ],
     "wifi": {
       "connected": false,
       "ssid": null,
@@ -205,22 +278,22 @@
       "samples": [
         {
           "host": "github.com",
-          "resolve_ms": 182.37,
+          "resolve_ms": 34.09,
           "success": true
         },
         {
           "host": "google.com",
-          "resolve_ms": 17.86,
+          "resolve_ms": 21.04,
           "success": true
         },
         {
           "host": "cloudflare.com",
-          "resolve_ms": 1.8,
+          "resolve_ms": 22.83,
           "success": true
         }
       ],
-      "avg_resolve_ms": 67.34,
-      "max_resolve_ms": 182.37
+      "avg_resolve_ms": 25.99,
+      "max_resolve_ms": 34.09
     },
     "tcp_window": {
       "auto_tuning": null,
@@ -245,16 +318,7 @@
   "bottleneck_hints": [],
   "run_history": [
     {
-      "timestamp": "2026-05-10T23:22:10.504101+00:00",
-      "os": "macos",
-      "layers_run": [
-        "hardware",
-        "network"
-      ],
-      "summary": "Ran hardware, network probe(s) on macos"
-    },
-    {
-      "timestamp": "2026-05-10T23:24:42.343506+00:00",
+      "timestamp": "2026-05-10T23:49:49.711974+00:00",
       "os": "macos",
       "layers_run": [
         "hardware",

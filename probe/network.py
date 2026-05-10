@@ -264,7 +264,9 @@ def _probe_interfaces() -> List[Dict[str, Any]]:
         elif _OS == "linux":
             return _interfaces_linux()
         elif _OS == "macos":
-            return _interfaces_macos()
+            result = _interfaces_macos()
+            # _interfaces_macos returns {"interfaces": [...], "filtered_note": "..."}
+            return result.get("interfaces", [])
     except Exception:
         pass
     return []

@@ -1,64 +1,23 @@
 {
   "schema_version": "1.0",
-  "generated_on": "2026-05-10T23:16:00.658944+00:00",
+  "generated_on": "2026-05-10T23:42:36.808233+00:00",
   "host": {
     "hostname": "chahn-p16",
     "os": "windows",
     "os_version": "10.0.26200",
     "python_version": "3.11.5"
   },
-  "hardware_baseline": {
-    "disk": {
-      "sequential_read_MBps": 741.12,
-      "sequential_write_MBps": 527.96,
-      "device_type": "HDD",
-      "interface": "USB",
-      "test_file_size_MB": 256,
-      "test_method": "python_sequential"
-    },
-    "cpu": {
-      "model": "13th Gen Intel(R) Core(TM) i7-1370P",
-      "cores_physical": 14,
-      "cores_logical": 20,
-      "aes_ni": true
-    },
-    "ram": {
-      "total_GB": 63.66
-    },
-    "nic": {
-      "interfaces": [
-        {
-          "name": "vEthernet (Default Switch)",
-          "negotiated_speed_str": "10 Gbps",
-          "negotiated_speed_Mbps": 10000,
-          "full_duplex": null,
-          "driver": null
-        },
-        {
-          "name": "Wi-Fi",
-          "negotiated_speed_str": "144.4 Mbps",
-          "negotiated_speed_Mbps": 144,
-          "full_duplex": false,
-          "driver": "Intel(R) Wi-Fi 6E AX211 160MHz"
-        }
-      ]
-    },
-    "power_plan": {
-      "active_scheme": "Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)",
-      "is_high_performance": false,
-      "throttle_warning": "'Balanced' power plan active \u2014 this can throttle NIC and disk throughput by 10\u201330%. Switch to High Performance for accurate benchmarks: powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c"
-    }
-  },
+  "hardware_baseline": {},
   "network_topology": {
     "default_gateway": "192.168.1.1",
     "ping": {
       "target": "192.168.1.1",
       "packets_sent": 10,
       "packet_loss_pct": 0.0,
-      "min_ms": 1.0,
+      "min_ms": 0.0,
       "avg_ms": 1.0,
-      "max_ms": 2.0,
-      "jitter_ms": 1.0
+      "max_ms": 3.0,
+      "jitter_ms": 3.0
     },
     "mtu": {
       "target": "192.168.1.1",
@@ -92,28 +51,28 @@
       "rssi_dBm": null,
       "standard": "802.11n",
       "tx_rate_Mbps": 130.0,
-      "signal_pct": 88
+      "signal_pct": 90
     },
     "dns": {
       "samples": [
         {
           "host": "github.com",
-          "resolve_ms": 135.35,
+          "resolve_ms": 45.66,
           "success": true
         },
         {
           "host": "google.com",
-          "resolve_ms": 15.46,
+          "resolve_ms": 17.58,
           "success": true
         },
         {
           "host": "cloudflare.com",
-          "resolve_ms": 16.81,
+          "resolve_ms": 16.77,
           "success": true
         }
       ],
-      "avg_resolve_ms": 55.87,
-      "max_resolve_ms": 135.35
+      "avg_resolve_ms": 26.67,
+      "max_resolve_ms": 45.66
     },
     "tcp_window": {
       "auto_tuning": true,
@@ -127,7 +86,7 @@
         {
           "hop": 1,
           "ip": "192.168.1.1",
-          "avg_ms": 1.0
+          "avg_ms": 2.0
         }
       ],
       "error": null
@@ -143,14 +102,7 @@
   "protocol_results": [],
   "bottleneck_hints": [
     {
-      "timestamp": "2026-05-10T23:16:19.939120+00:00",
-      "layer": "hardware.power_plan",
-      "observation": "Non-high-performance power plan active: Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)",
-      "confidence": "medium",
-      "suggested_action": "Run: powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c to enable High Performance before benchmarking."
-    },
-    {
-      "timestamp": "2026-05-10T23:16:49.009322+00:00",
+      "timestamp": "2026-05-10T23:42:50.674522+00:00",
       "layer": "network.wifi",
       "observation": "Connected to 2.4 GHz Wi-Fi. Maximum practical throughput ~70 Mbps.",
       "confidence": "medium",
@@ -159,13 +111,12 @@
   ],
   "run_history": [
     {
-      "timestamp": "2026-05-10T23:16:49.009322+00:00",
+      "timestamp": "2026-05-10T23:42:50.675365+00:00",
       "os": "windows",
       "layers_run": [
-        "hardware",
         "network"
       ],
-      "summary": "Ran hardware, network probe(s) on windows"
+      "summary": "Ran network probe(s) on windows"
     }
   ]
 }

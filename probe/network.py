@@ -326,13 +326,35 @@ def _interfaces_linux() -> List[Dict[str, Any]]:
 
 def _interfaces_macos() -> List[Dict[str, Any]]:
     """
-    Use system_profiler SPNetworkDataType -json for structured interface data,
-    then enrich with ifconfig for MTU and media speed.
+    Enumerate physical network interfaces on macOS.
+
+    macOS exposes a large number of virtual/tunnel interfaces (utun*, awdl0,
+    llw0, anpi*, vmenet*, bridge*, ap1, etc.) that are irrelevant to transfer
+    performance benchmarking. We keep only interfaces whose device name matches
+    known physical patterns (en*, bridge for real bridges) AND that carry a
+    recognisable media line in ifconfig output.
+
+    Filtered-out interfaces are counted and recorded in a 'filtered_note' field
+    on the returned dict so the artifact always shows what was excluded and why.
+    No silent discards.
     """
     import json as _json
-    results = []
 
-    # Primary: system_profiler (available on all macOS)
+    # ── Prefixes / names that are always virtual on macOS ────────────────────
+    # utun*  : VPN tunnels (WireGuard, OpenVPN, macOS VPN framework)
+    # awdl0  : Apple Wireless Direct Link (AirDrop / Sidecar)
+    # llw0   : Low-latency WLAN (companion to awdl0)
+    # anpi*  : Apple Network Protocol Interface (internal firmware comms)
+    # vmenet*: Parallels / VMware virtual ethernet
+    # ap1    : Access-point mode virtual interface
+    # lo0    : loopback
+    VIRTUAL_PREFIXES = ("utun", "awdl", "llw", "anpi", "vmenet", "lo", "ap")
+    VIRTUAL_EXACT    = {"ap1"}
+
+    def _is_virtual(dev: str) -> bool:
+        return dev in VIRTUAL_EXACT or any(dev.startswith(p) for p in VIRTUAL_PREFIXES)
+
+    # Primary source: system_profiler gives human-readable port names
     sp_out, _, sp_rc = run_command(
         ["system_profiler", "SPNetworkDataType", "-json"], timeout=15
     )
@@ -347,13 +369,13 @@ def _interfaces_macos() -> List[Dict[str, Any]]:
         except (_json.JSONDecodeError, KeyError):
             pass
 
-    # Get all active interfaces from ifconfig
-    ifc_out, _, _ = run_command(["ifconfig", "-u"])   # -u = up interfaces only
+    # Parse ifconfig -u (UP interfaces only) into per-device blocks
+    ifc_out, _, _ = run_command(["ifconfig", "-u"])
     if not ifc_out:
         ifc_out, _, _ = run_command(["ifconfig"])
 
-    current_dev = None
     iface_blocks: Dict[str, List[str]] = {}
+    current_dev = None
     for line in ifc_out.splitlines():
         m = re.match(r"^(\w[\w.]+):", line)
         if m:
@@ -362,32 +384,34 @@ def _interfaces_macos() -> List[Dict[str, Any]]:
         elif current_dev and line.startswith("\t"):
             iface_blocks[current_dev].append(line)
 
+    results      = []
+    skipped_devs = []   # track what we filtered for the note
+
     for dev, lines in iface_blocks.items():
-        if dev == "lo0":
-            continue
         block = "\n".join(lines)
-        # Skip loopback and non-UP interfaces
-        if "LOOPBACK" in block or "UP" not in block.split(":")[0].upper():
+        if "LOOPBACK" in block:
+            skipped_devs.append(f"{dev}(loopback)")
+            continue
+        if _is_virtual(dev):
+            skipped_devs.append(f"{dev}(virtual)")
             continue
 
-        speed_mbps = None
+        speed_mbps  = None
         full_duplex = None
         iface_type  = None
 
-        # Parse media line: "	media: autoselect (1000baseT <full-duplex>)"
+        # Parse: "	media: autoselect (1000baseT <full-duplex>)"
         media_m = re.search(r"media:\s+\S+\s*\(([^)]*)\)", block)
         if media_m:
-            media_str = media_m.group(1)
-            speed_mbps = _parse_link_speed(media_str)
+            media_str   = media_m.group(1)
+            speed_mbps  = _parse_link_speed(media_str)
             full_duplex = "full-duplex" in media_str.lower()
 
-        # Enrich with system_profiler data if available
-        sp = sp_ifaces.get(dev, {})
+        sp   = sp_ifaces.get(dev, {})
         name = sp.get("_name") or dev
 
-        # Determine type hint
         lower_name = name.lower()
-        if "wi-fi" in lower_name or "airport" in lower_name or dev.startswith("en") and "wifi" in block.lower():
+        if "wi-fi" in lower_name or "airport" in lower_name:
             iface_type = "Wi-Fi"
         elif "thunderbolt" in lower_name:
             iface_type = "Thunderbolt"
@@ -395,6 +419,8 @@ def _interfaces_macos() -> List[Dict[str, Any]]:
             iface_type = "Bluetooth"
         elif "ethernet" in lower_name or dev.startswith("en"):
             iface_type = "Ethernet"
+        elif dev.startswith("bridge"):
+            iface_type = "Bridge"
 
         results.append({
             "name":                  name,
@@ -405,7 +431,13 @@ def _interfaces_macos() -> List[Dict[str, Any]]:
             "ip_address":            (sp.get("ip_address") or [None])[0],
         })
 
-    return results
+    # Always record what was filtered and why — never a silent discard
+    filtered_note = (
+        f"Filtered out {len(skipped_devs)} virtual/loopback interface(s): "
+        + ", ".join(skipped_devs)
+    ) if skipped_devs else "No virtual interfaces filtered."
+
+    return {"interfaces": results, "filtered_note": filtered_note}
 
 
 # ═════════════════════════════════════════════════════════════════════════════

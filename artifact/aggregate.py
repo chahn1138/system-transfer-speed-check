@@ -68,13 +68,16 @@ def _compare_hosts(hosts: Dict[str, Any]) -> Dict[str, Any]:
         ram_info[hostname] = {"total_GB": ram.get("total_GB")}
 
         ifaces = nic.get("interfaces", [])
-        nic_speeds[hostname] = [
-            {
-                "name":  i.get("name") or i.get("device"),
-                "speed": i.get("negotiated_speed_Mbps"),
-            }
-            for i in ifaces
-        ]
+        nic_speeds[hostname] = {
+            "interfaces": [
+                {
+                    "name":  i.get("name") or i.get("device"),
+                    "speed": i.get("negotiated_speed_Mbps"),
+                }
+                for i in ifaces
+            ],
+            "filtered_note": nic.get("filtered_note"),
+        }
 
     # Find fastest disk per metric across all hosts
     fastest_read  = _find_best(disk_speeds, "read_MBps",  higher_is_better=True)
@@ -161,7 +164,9 @@ def print_comparison(aggregate: Dict[str, Any]) -> None:
     print("  NICs (active)")
     print(_LINE)
     for h in host_names:
-        nics = comparison.get("nic_speeds", {}).get(h, [])
+        nic_entry = comparison.get("nic_speeds", {}).get(h, {})
+        nics      = nic_entry.get("interfaces", []) if isinstance(nic_entry, dict) else nic_entry
+        fn        = nic_entry.get("filtered_note") if isinstance(nic_entry, dict) else None
         print(f"  {h}:")
         if nics:
             for n in nics:
@@ -170,6 +175,8 @@ def print_comparison(aggregate: Dict[str, Any]) -> None:
                 print(f"    · {n.get('name', '?'):<30} {spd_str}")
         else:
             print("    (no active NICs found)")
+        if fn:
+            print(f"    ↳ {fn}")
 
     # ── Bottleneck hints ─────────────────────────────────────────────────────
     all_hints = []

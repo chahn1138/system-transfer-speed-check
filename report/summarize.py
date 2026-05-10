@@ -71,6 +71,9 @@ def print_summary(artifact: Dict[str, Any]) -> None:
                 fd_str = " full-duplex" if fd else (" half-duplex" if fd is False else "")
                 name = i.get("name") or i.get("device") or "?"
                 print(f"    · {name} : {spd_str}{fd_str}")
+        fn = nic.get("filtered_note")
+        if fn:
+            print(f"  NIC filter : {fn}")
 
         # Power plan: only show if present (Windows only)
         pp = hw.get("power_plan")

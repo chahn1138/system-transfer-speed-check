@@ -1,0 +1,266 @@
+{
+  "schema_version": "1.0",
+  "generated_on": "2026-05-10T23:21:54.613848+00:00",
+  "host": {
+    "hostname": "chahnmac.local",
+    "os": "macos",
+    "os_version": "Darwin Kernel Version 25.3.0: Wed Jan 28 20:53:15 PST 2026; root:xnu-12377.81.4~5/RELEASE_ARM64_T6000",
+    "python_version": "3.10.2"
+  },
+  "hardware_baseline": {
+    "disk": {
+      "sequential_read_MBps": 12866.32,
+      "sequential_write_MBps": 4296.41,
+      "device_type": "SSD",
+      "interface": null,
+      "test_file_size_MB": 256,
+      "test_method": "python_sequential"
+    },
+    "cpu": {
+      "model": "Apple M1 Max",
+      "cores_physical": 10,
+      "cores_logical": 10,
+      "aes_ni": true
+    },
+    "ram": {
+      "total_GB": 64.0
+    },
+    "nic": {
+      "interfaces": [
+        {
+          "name": "anpi1",
+          "device": "anpi1",
+          "negotiated_speed_Mbps": null,
+          "full_duplex": null
+        },
+        {
+          "name": "anpi2",
+          "device": "anpi2",
+          "negotiated_speed_Mbps": null,
+          "full_duplex": null
+        },
+        {
+          "name": "anpi0",
+          "device": "anpi0",
+          "negotiated_speed_Mbps": null,
+          "full_duplex": null
+        },
+        {
+          "name": "Ethernet Adapter (en4)",
+          "device": "en4",
+          "negotiated_speed_Mbps": null,
+          "full_duplex": null
+        },
+        {
+          "name": "Ethernet Adapter (en5)",
+          "device": "en5",
+          "negotiated_speed_Mbps": null,
+          "full_duplex": null
+        },
+        {
+          "name": "Ethernet Adapter (en6)",
+          "device": "en6",
+          "negotiated_speed_Mbps": null,
+          "full_duplex": null
+        },
+        {
+          "name": "Thunderbolt 1",
+          "device": "en1",
+          "negotiated_speed_Mbps": null,
+          "full_duplex": null
+        },
+        {
+          "name": "Thunderbolt 2",
+          "device": "en2",
+          "negotiated_speed_Mbps": null,
+          "full_duplex": null
+        },
+        {
+          "name": "Thunderbolt 3",
+          "device": "en3",
+          "negotiated_speed_Mbps": null,
+          "full_duplex": null
+        },
+        {
+          "name": "Thunderbolt Bridge",
+          "device": "bridge0",
+          "negotiated_speed_Mbps": null,
+          "full_duplex": null
+        },
+        {
+          "name": "ap1",
+          "device": "ap1",
+          "negotiated_speed_Mbps": null,
+          "full_duplex": false
+        },
+        {
+          "name": "Wi-Fi",
+          "device": "en0",
+          "negotiated_speed_Mbps": null,
+          "full_duplex": null
+        },
+        {
+          "name": "awdl0",
+          "device": "awdl0",
+          "negotiated_speed_Mbps": null,
+          "full_duplex": null
+        },
+        {
+          "name": "llw0",
+          "device": "llw0",
+          "negotiated_speed_Mbps": null,
+          "full_duplex": false
+        },
+        {
+          "name": "utun0",
+          "device": "utun0",
+          "negotiated_speed_Mbps": null,
+          "full_duplex": null
+        },
+        {
+          "name": "utun1",
+          "device": "utun1",
+          "negotiated_speed_Mbps": null,
+          "full_duplex": null
+        },
+        {
+          "name": "utun2",
+          "device": "utun2",
+          "negotiated_speed_Mbps": null,
+          "full_duplex": null
+        },
+        {
+          "name": "utun3",
+          "device": "utun3",
+          "negotiated_speed_Mbps": null,
+          "full_duplex": null
+        },
+        {
+          "name": "utun4",
+          "device": "utun4",
+          "negotiated_speed_Mbps": null,
+          "full_duplex": null
+        },
+        {
+          "name": "utun5",
+          "device": "utun5",
+          "negotiated_speed_Mbps": null,
+          "full_duplex": null
+        },
+        {
+          "name": "utun6",
+          "device": "utun6",
+          "negotiated_speed_Mbps": null,
+          "full_duplex": null
+        },
+        {
+          "name": "vmenet0",
+          "device": "vmenet0",
+          "negotiated_speed_Mbps": null,
+          "full_duplex": null
+        },
+        {
+          "name": "bridge100",
+          "device": "bridge100",
+          "negotiated_speed_Mbps": null,
+          "full_duplex": null
+        },
+        {
+          "name": "utun7",
+          "device": "utun7",
+          "negotiated_speed_Mbps": null,
+          "full_duplex": null
+        }
+      ]
+    }
+  },
+  "network_topology": {
+    "default_gateway": "192.168.1.1",
+    "ping": {
+      "target": "192.168.1.1",
+      "packets_sent": 10,
+      "packet_loss_pct": 0.0,
+      "min_ms": 4.226,
+      "avg_ms": 5.455,
+      "max_ms": 7.074,
+      "jitter_ms": 0.878
+    },
+    "mtu": {
+      "target": "192.168.1.1",
+      "effective_mtu": 1500,
+      "interface_mtu": 1500,
+      "warning": null
+    },
+    "interfaces": [],
+    "wifi": {
+      "connected": false,
+      "ssid": null,
+      "band": null,
+      "channel": null,
+      "rssi_dBm": null,
+      "standard": null,
+      "tx_rate_Mbps": null
+    },
+    "dns": {
+      "samples": [
+        {
+          "host": "github.com",
+          "resolve_ms": 182.37,
+          "success": true
+        },
+        {
+          "host": "google.com",
+          "resolve_ms": 17.86,
+          "success": true
+        },
+        {
+          "host": "cloudflare.com",
+          "resolve_ms": 1.8,
+          "success": true
+        }
+      ],
+      "avg_resolve_ms": 67.34,
+      "max_resolve_ms": 182.37
+    },
+    "tcp_window": {
+      "auto_tuning": null,
+      "recv_window_bytes": 131072,
+      "send_window_bytes": 131072,
+      "notes": null
+    },
+    "traceroute": {
+      "target": "192.168.1.1",
+      "hops": [
+        {
+          "hop": 1,
+          "ip": "192.168.1.1",
+          "avg_ms": 1.99
+        }
+      ],
+      "error": null
+    },
+    "bandwidth_delay_product": null
+  },
+  "protocol_results": [],
+  "bottleneck_hints": [],
+  "run_history": [
+    {
+      "timestamp": "2026-05-10T23:22:10.504101+00:00",
+      "os": "macos",
+      "layers_run": [
+        "hardware",
+        "network"
+      ],
+      "summary": "Ran hardware, network probe(s) on macos"
+    },
+    {
+      "timestamp": "2026-05-10T23:24:42.343506+00:00",
+      "os": "macos",
+      "layers_run": [
+        "hardware",
+        "network"
+      ],
+      "summary": "Ran hardware, network probe(s) on macos"
+    }
+  ]
+}

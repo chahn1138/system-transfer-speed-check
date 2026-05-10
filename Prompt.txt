@@ -1,0 +1,18 @@
+I need a script that will support my trying to understand: File Transfer Speed 
+on my various systems.
+
+Including
+
+- How fast my system could be.....probes to suss out the physical base
+- How to detect when one "route" (method (threads?), tooling (scp, etc), 
+  hardware layout (disks being used), etc) might be the "slow" link in the 
+  chain.
+- Please suggest any other NETWORK and TRANSFER related probes and/or data that
+  might be added to this picture.
+
+and I said "slow" above because there will have to be a starting phase when 
+actions are done independent of whether they are expected to be fast or slow 
+because the system could not know as it starts.  I would like that "intelligence"
+that is produced by our process of trial and error to be realized outside of 
+the codebase...as an artifact of its own.  This data will likely be part of the
+inputs given to the next step in a laeger action.

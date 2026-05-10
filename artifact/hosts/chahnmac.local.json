@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "generated_on": "2026-05-10T23:49:35.001380+00:00",
+  "generated_on": "2026-05-10T23:50:36.698088+00:00",
   "host": {
     "hostname": "chahnmac.local",
     "os": "macos",
@@ -9,8 +9,8 @@
   },
   "hardware_baseline": {
     "disk": {
-      "sequential_read_MBps": 13549.24,
-      "sequential_write_MBps": 7157.4,
+      "sequential_read_MBps": 13763.01,
+      "sequential_write_MBps": 7133.64,
       "device_type": "SSD",
       "interface": null,
       "test_file_size_MB": 256,
@@ -180,10 +180,10 @@
       "target": "192.168.1.1",
       "packets_sent": 10,
       "packet_loss_pct": 0.0,
-      "min_ms": 4.802,
-      "avg_ms": 6.07,
-      "max_ms": 7.509,
-      "jitter_ms": 0.768
+      "min_ms": 5.214,
+      "avg_ms": 6.37,
+      "max_ms": 8.795,
+      "jitter_ms": 0.963
     },
     "mtu": {
       "target": "192.168.1.1",
@@ -278,22 +278,22 @@
       "samples": [
         {
           "host": "github.com",
-          "resolve_ms": 34.09,
+          "resolve_ms": 5.29,
           "success": true
         },
         {
           "host": "google.com",
-          "resolve_ms": 21.04,
+          "resolve_ms": 1.32,
           "success": true
         },
         {
           "host": "cloudflare.com",
-          "resolve_ms": 22.83,
+          "resolve_ms": 25.54,
           "success": true
         }
       ],
-      "avg_resolve_ms": 25.99,
-      "max_resolve_ms": 34.09
+      "avg_resolve_ms": 10.72,
+      "max_resolve_ms": 25.54
     },
     "tcp_window": {
       "auto_tuning": null,
@@ -307,7 +307,7 @@
         {
           "hop": 1,
           "ip": "192.168.1.1",
-          "avg_ms": 1.99
+          "avg_ms": 1.87
         }
       ],
       "error": null
@@ -318,7 +318,7 @@
   "bottleneck_hints": [],
   "run_history": [
     {
-      "timestamp": "2026-05-10T23:49:49.711974+00:00",
+      "timestamp": "2026-05-10T23:50:51.379062+00:00",
       "os": "macos",
       "layers_run": [
         "hardware",

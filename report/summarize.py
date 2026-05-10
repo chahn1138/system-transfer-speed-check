@@ -1,17 +1,19 @@
 """
 report/summarize.py
 ===================
-Human-readable console summary of the transfer-profile artifact.
+Human-readable console summary of a single host's transfer-profile artifact.
 
 Intentionally uses only stdlib so it works before 'pip install' is run.
 A rich-based version will be added in Phase 5.
+
+For cross-host comparison, see artifact/aggregate.py.
 """
 
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 
 
-_SEP  = "═" * 62
-_LINE = "─" * 62
+_SEP  = "═" * 66
+_LINE = "─" * 66
 
 
 def print_summary(artifact: Dict[str, Any]) -> None:
@@ -22,7 +24,7 @@ def print_summary(artifact: Dict[str, Any]) -> None:
     print("   SYSTEM TRANSFER SPEED CHECK — ARTIFACT SUMMARY")
     print(_SEP)
     print(f"  Host     : {host.get('hostname', 'Unknown')}")
-    print(f"  OS       : {host.get('os', 'Unknown')}  {host.get('os_version', '')}")
+    print(f"  OS       : {host.get('os', 'Unknown')}  {host.get('os_version', '')[:50]}")
     print(f"  Python   : {host.get('python_version', 'Unknown')}")
     print(f"  Generated: {artifact.get('generated_on', 'Unknown')}")
 
@@ -67,9 +69,11 @@ def print_summary(artifact: Dict[str, Any]) -> None:
                 spd_str = f"{spd:,} Mbps" if spd else "speed unknown"
                 fd  = i.get("full_duplex")
                 fd_str = " full-duplex" if fd else (" half-duplex" if fd is False else "")
-                print(f"    · {i.get('name', '?')} : {spd_str}{fd_str}")
+                name = i.get("name") or i.get("device") or "?"
+                print(f"    · {name} : {spd_str}{fd_str}")
 
-        pp = hw.get("power_plan", {})
+        # Power plan: only show if present (Windows only)
+        pp = hw.get("power_plan")
         if pp:
             warn = pp.get("throttle_warning")
             if warn:
@@ -77,13 +81,79 @@ def print_summary(artifact: Dict[str, Any]) -> None:
             elif pp.get("is_high_performance"):
                 print("  ✓  Power plan: High Performance")
 
+    # ── Layer 2: Network ─────────────────────────────────────────────────────
+    net = artifact.get("network_topology", {})
+    if net:
+        print(f"\n{_LINE}")
+        print("  Layer 2 — Network Characterization")
+        print(_LINE)
+
+        gw = net.get("default_gateway")
+        if gw:
+            print(f"  Gateway    : {gw}")
+
+        ping = net.get("ping", {})
+        if ping and ping.get("avg_ms") is not None:
+            loss = ping.get("packet_loss_pct", 0)
+            loss_str = f"  ⚠ {loss}% loss!" if loss else "  no loss"
+            print(f"  Ping       : avg {ping['avg_ms']} ms  "
+                  f"jitter {ping.get('jitter_ms', '?')} ms{loss_str}"
+                  f"  → {ping.get('target', '?')}")
+
+        mtu = net.get("mtu", {})
+        if mtu:
+            eff = mtu.get("effective_mtu")
+            cfg = mtu.get("interface_mtu")
+            mtu_str = f"{eff}" if eff else "?"
+            cfg_str = f"  (configured: {cfg})" if cfg else ""
+            warn_flag = "  ⚠" if mtu.get("warning") else ""
+            print(f"  MTU        : effective {mtu_str}{cfg_str}{warn_flag}")
+
+        wifi = net.get("wifi", {})
+        if wifi.get("connected"):
+            ssid   = wifi.get("ssid", "?")
+            band   = wifi.get("band", "?")
+            rssi   = wifi.get("rssi_dBm")
+            txrate = wifi.get("tx_rate_Mbps")
+            rssi_str   = f"  {rssi} dBm" if rssi else ""
+            txrate_str = f"  tx {txrate} Mbps" if txrate else ""
+            print(f"  Wi-Fi      : {ssid}  {band}{rssi_str}{txrate_str}")
+        elif wifi.get("connected") is False:
+            print(f"  Wi-Fi      : not connected")
+
+        dns = net.get("dns", {})
+        avg_dns = dns.get("avg_resolve_ms")
+        if avg_dns is not None:
+            flag = "  ⚠ slow DNS!" if avg_dns > 100 else ""
+            print(f"  DNS        : avg {avg_dns} ms  max {dns.get('max_resolve_ms')} ms{flag}")
+
+        tcp = net.get("tcp_window", {})
+        if tcp:
+            at = tcp.get("auto_tuning")
+            at_str = "enabled ✓" if at else ("DISABLED ⚠" if at is False else "?")
+            recv   = tcp.get("recv_window_bytes")
+            recv_str = f"  recv window {recv//1024} KB" if recv else ""
+            print(f"  TCP        : auto-tuning {at_str}{recv_str}")
+
+        bdp = net.get("bandwidth_delay_product")
+        if bdp and bdp.get("bdp_KB"):
+            print(f"  BDP        : {bdp['bdp_KB']} KB  "
+                  f"(ideal window for {bdp['nic_speed_Mbps']} Mbps / {bdp['rtt_ms']} ms RTT)")
+
+        hops = (net.get("traceroute") or {}).get("hops", [])
+        if hops:
+            print(f"  Traceroute : {len(hops)} hops to {net.get('traceroute', {}).get('target', '?')}")
+            for h in hops[:5]:
+                ms = f"{h['avg_ms']} ms" if h.get("avg_ms") else "*"
+                print(f"    hop {h['hop']:2}  {h.get('ip', '*'):<18} {ms}")
+
     # ── Bottleneck Hints ──────────────────────────────────────────────────────
     hints = artifact.get("bottleneck_hints", [])
     if hints:
         print(f"\n{_LINE}")
         print("  Bottleneck Hints")
         print(_LINE)
-        for h in hints[-5:]:  # show most recent 5
+        for h in hints:
             conf  = (h.get("confidence") or "?").upper()
             layer = h.get("layer") or "?"
             obs   = h.get("observation") or ""

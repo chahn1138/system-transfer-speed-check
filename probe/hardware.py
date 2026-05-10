@@ -432,31 +432,56 @@ def _nic_linux() -> Dict[str, Any]:
 
 
 def _nic_macos() -> Dict[str, Any]:
-    out, _, rc = run_command(["networksetup", "-listallhardwareports"])
-    if rc != 0 or not out:
+    """
+    Use networksetup -listallhardwareports to enumerate ports, then
+    parse each device's ifconfig block for the media line.
+    Only includes interfaces that are UP.
+    """
+    list_out, _, rc = run_command(["networksetup", "-listallhardwareports"])
+    if rc != 0 or not list_out:
         return {"interfaces": []}
 
-    interfaces = []
-    current: Dict[str, Any] = {}
-    for line in out.splitlines():
+    # Build port-name → device mapping
+    port_map = {}
+    current_port = None
+    for line in list_out.splitlines():
         if line.startswith("Hardware Port:"):
-            if current:
-                interfaces.append(current)
-            current = {
-                "name":                  line.split(":", 1)[1].strip(),
-                "negotiated_speed_Mbps": None,
-                "full_duplex":           None,
-            }
-        elif line.startswith("Device:") and current:
-            dev = line.split(":", 1)[1].strip()
-            if_out, _, _ = run_command(["ifconfig", dev])
-            for iline in if_out.splitlines():
-                if "media:" in iline.lower() and "baset" in iline.lower():
-                    current["negotiated_speed_Mbps"] = _parse_link_speed(iline)
-                    if "full-duplex" in iline.lower():
-                        current["full_duplex"] = True
-    if current:
-        interfaces.append(current)
+            current_port = line.split(":", 1)[1].strip()
+        elif line.startswith("Device:") and current_port:
+            port_map[line.split(":", 1)[1].strip()] = current_port
+            current_port = None
+
+    # Parse ifconfig for all UP interfaces
+    ifc_out, _, _ = run_command(["ifconfig", "-u"])  # -u = UP only
+    if not ifc_out:
+        ifc_out, _, _ = run_command(["ifconfig"])
+
+    # Split into per-device blocks
+    import re as _re
+    blocks = _re.split(r"(?m)^(?=\w)", ifc_out)
+    interfaces = []
+    for block in blocks:
+        dev_m = _re.match(r"(\w[\w.]+):", block)
+        if not dev_m:
+            continue
+        dev = dev_m.group(1)
+        if dev == "lo0" or "LOOPBACK" in block:
+            continue
+
+        speed_mbps  = None
+        full_duplex = None
+        media_m = _re.search(r"media:\s+\S+\s*\(([^)]+)\)", block)
+        if media_m:
+            media_str   = media_m.group(1)
+            speed_mbps  = _parse_link_speed(media_str)
+            full_duplex = "full-duplex" in media_str.lower()
+
+        interfaces.append({
+            "name":                  port_map.get(dev, dev),
+            "device":                dev,
+            "negotiated_speed_Mbps": speed_mbps,
+            "full_duplex":           full_duplex,
+        })
 
     return {"interfaces": interfaces}
 

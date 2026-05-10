@@ -2,51 +2,72 @@
   "schema_version": "1.0",
   "generated_on": "2026-05-10T21:28:01.788325+00:00",
   "host": {
-    "hostname": "chahn-p16",
-    "os": "windows",
-    "os_version": "10.0.26200",
-    "python_version": "3.11.5"
+    "hostname": "chahnmac.local",
+    "os": "macos",
+    "os_version": "Darwin Kernel Version 25.3.0: Wed Jan 28 20:53:15 PST 2026; root:xnu-12377.81.4~5/RELEASE_ARM64_T6000",
+    "python_version": "3.9.7"
   },
   "hardware_baseline": {
     "disk": {
-      "sequential_read_MBps": 1630.17,
-      "sequential_write_MBps": 1141.54,
-      "device_type": "HDD",
-      "interface": "USB",
+      "sequential_read_MBps": 13622.03,
+      "sequential_write_MBps": 5683.36,
+      "device_type": "SSD",
+      "interface": null,
       "test_file_size_MB": 256,
       "test_method": "python_sequential"
     },
     "cpu": {
-      "model": "13th Gen Intel(R) Core(TM) i7-1370P",
-      "cores_physical": 14,
-      "cores_logical": 20,
+      "model": "Apple M1 Max",
+      "cores_physical": 10,
+      "cores_logical": 10,
       "aes_ni": true
     },
     "ram": {
-      "total_GB": 63.66
+      "total_GB": 64.0
     },
     "nic": {
       "interfaces": [
         {
-          "name": "vEthernet (Default Switch)",
-          "negotiated_speed_str": "10 Gbps",
-          "negotiated_speed_Mbps": 10000,
-          "full_duplex": null,
-          "driver": null
+          "name": "Ethernet Adapter (en4)",
+          "negotiated_speed_Mbps": null,
+          "full_duplex": null
+        },
+        {
+          "name": "Ethernet Adapter (en5)",
+          "negotiated_speed_Mbps": null,
+          "full_duplex": null
+        },
+        {
+          "name": "Ethernet Adapter (en6)",
+          "negotiated_speed_Mbps": null,
+          "full_duplex": null
+        },
+        {
+          "name": "Thunderbolt Bridge",
+          "negotiated_speed_Mbps": null,
+          "full_duplex": null
         },
         {
           "name": "Wi-Fi",
-          "negotiated_speed_str": "144.4 Mbps",
-          "negotiated_speed_Mbps": 144,
-          "full_duplex": false,
-          "driver": "Intel(R) Wi-Fi 6E AX211 160MHz"
+          "negotiated_speed_Mbps": null,
+          "full_duplex": null
+        },
+        {
+          "name": "Thunderbolt 1",
+          "negotiated_speed_Mbps": null,
+          "full_duplex": null
+        },
+        {
+          "name": "Thunderbolt 2",
+          "negotiated_speed_Mbps": null,
+          "full_duplex": null
+        },
+        {
+          "name": "Thunderbolt 3",
+          "negotiated_speed_Mbps": null,
+          "full_duplex": null
         }
       ]
-    },
-    "power_plan": {
-      "active_scheme": "Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)",
-      "is_high_performance": false,
-      "throttle_warning": "'Balanced' power plan active \u2014 this can throttle NIC and disk throughput by 10\u201330%. Switch to High Performance for accurate benchmarks: powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c"
     }
   },
   "network_topology": {},
@@ -68,6 +89,14 @@
         "hardware"
       ],
       "summary": "Ran hardware probe(s) on windows"
+    },
+    {
+      "timestamp": "2026-05-10T22:05:54.689040+00:00",
+      "os": "macos",
+      "layers_run": [
+        "hardware"
+      ],
+      "summary": "Ran hardware probe(s) on macos"
     }
   ]
 }

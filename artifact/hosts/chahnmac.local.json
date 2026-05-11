@@ -5,12 +5,12 @@
     "hostname": "chahnmac.local",
     "os": "macos",
     "os_version": "Darwin Kernel Version 25.3.0: Wed Jan 28 20:53:15 PST 2026; root:xnu-12377.81.4~5/RELEASE_ARM64_T6000",
-    "python_version": "3.9.7"
+    "python_version": "3.10.2"
   },
   "hardware_baseline": {
     "disk": {
-      "sequential_read_MBps": 13421.06,
-      "sequential_write_MBps": 2023.07,
+      "sequential_read_MBps": 14039.74,
+      "sequential_write_MBps": 2794.9,
       "device_type": "SSD",
       "interface": null,
       "test_file_size_MB": 256,
@@ -30,7 +30,7 @@
         {
           "name": "Wi-Fi",
           "device": "en0",
-          "negotiated_speed_Mbps": null,
+          "negotiated_speed_Mbps": 390,
           "full_duplex": null
         },
         {
@@ -210,6 +210,14 @@
         "live"
       ],
       "summary": "Ran live probe(s) on macos"
+    },
+    {
+      "timestamp": "2026-05-11T05:37:30.502477+00:00",
+      "os": "macos",
+      "layers_run": [
+        "hardware"
+      ],
+      "summary": "Ran hardware probe(s) on macos"
     }
   ],
   "tuning_results": [

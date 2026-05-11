@@ -435,8 +435,12 @@ def _nic_macos() -> Dict[str, Any]:
     """
     Use networksetup -listallhardwareports to enumerate ports, then
     parse each device's ifconfig block for the media line.
-    Only includes interfaces that are UP.
+    For Wi-Fi interfaces, fall back to system_profiler tx rate.
+    Only includes interfaces that are UP and active.
     """
+    import json as _json
+    import re as _re
+
     list_out, _, rc = run_command(["networksetup", "-listallhardwareports"])
     if rc != 0 or not list_out:
         return {"interfaces": []}
@@ -451,13 +455,28 @@ def _nic_macos() -> Dict[str, Any]:
             port_map[line.split(":", 1)[1].strip()] = current_port
             current_port = None
 
+    # Get Wi-Fi tx rate from system_profiler (airport binary removed in recent macOS)
+    wifi_tx: Dict[str, Optional[int]] = {}  # dev → tx_rate_Mbps
+    sp_out, _, sp_rc = run_command(
+        ["system_profiler", "SPAirPortDataType", "-json"], timeout=15
+    )
+    if sp_rc == 0 and sp_out:
+        try:
+            sp = _json.loads(sp_out)
+            for airport in sp.get("SPAirPortDataType", []):
+                for iface in airport.get("spairport_airport_interfaces", []):
+                    dev = iface.get("_name", "")
+                    current = iface.get("spairport_current_network_information")
+                    if current:
+                        wifi_tx[dev] = current.get("spairport_network_rate")
+        except (_json.JSONDecodeError, KeyError):
+            pass
+
     # Parse ifconfig for all UP interfaces
-    ifc_out, _, _ = run_command(["ifconfig", "-u"])  # -u = UP only
+    ifc_out, _, _ = run_command(["ifconfig", "-u"])
     if not ifc_out:
         ifc_out, _, _ = run_command(["ifconfig"])
 
-    # Split into per-device blocks
-    import re as _re
     VIRTUAL_PREFIXES = ("utun", "awdl", "llw", "anpi", "vmenet", "lo", "ap")
     VIRTUAL_EXACT    = {"ap1"}
 
@@ -482,6 +501,10 @@ def _nic_macos() -> Dict[str, Any]:
             media_str   = media_m.group(1)
             speed_mbps  = _parse_link_speed(media_str)
             full_duplex = "full-duplex" in media_str.lower()
+
+        # Wi-Fi fallback: use current tx rate from system_profiler
+        if speed_mbps is None and dev in wifi_tx:
+            speed_mbps = wifi_tx[dev]
 
         interfaces.append({
             "name":                  port_map.get(dev, dev),

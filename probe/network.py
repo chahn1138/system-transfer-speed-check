@@ -397,6 +397,9 @@ def _interfaces_macos() -> List[Dict[str, Any]]:
         if _is_virtual(dev):
             skipped_devs.append(f"{dev}(virtual)")
             continue
+        if "status: inactive" in block or "media: none" in block:
+            skipped_devs.append(f"{dev}(inactive)")
+            continue
 
         speed_mbps  = None
         full_duplex = None

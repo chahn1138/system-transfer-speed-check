@@ -472,6 +472,8 @@ def _nic_macos() -> Dict[str, Any]:
             continue
         if dev in VIRTUAL_EXACT or any(dev.startswith(p) for p in VIRTUAL_PREFIXES):
             continue
+        if "status: inactive" in block or "media: none" in block:
+            continue
 
         speed_mbps  = None
         full_duplex = None

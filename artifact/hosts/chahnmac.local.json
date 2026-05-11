@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "generated_on": "2026-05-11T01:27:27.867344+00:00",
+  "generated_on": "2026-05-11T01:47:44.392567+00:00",
   "host": {
     "hostname": "chahnmac.local",
     "os": "macos",
@@ -9,8 +9,8 @@
   },
   "hardware_baseline": {
     "disk": {
-      "sequential_read_MBps": 13675.46,
-      "sequential_write_MBps": 7173.81,
+      "sequential_read_MBps": 13705.23,
+      "sequential_write_MBps": 3205.18,
       "device_type": "SSD",
       "interface": null,
       "test_file_size_MB": 256,
@@ -27,48 +27,6 @@
     },
     "nic": {
       "interfaces": [
-        {
-          "name": "Ethernet Adapter (en4)",
-          "device": "en4",
-          "negotiated_speed_Mbps": null,
-          "full_duplex": null
-        },
-        {
-          "name": "Ethernet Adapter (en5)",
-          "device": "en5",
-          "negotiated_speed_Mbps": null,
-          "full_duplex": null
-        },
-        {
-          "name": "Ethernet Adapter (en6)",
-          "device": "en6",
-          "negotiated_speed_Mbps": null,
-          "full_duplex": null
-        },
-        {
-          "name": "Thunderbolt 1",
-          "device": "en1",
-          "negotiated_speed_Mbps": null,
-          "full_duplex": null
-        },
-        {
-          "name": "Thunderbolt 2",
-          "device": "en2",
-          "negotiated_speed_Mbps": null,
-          "full_duplex": null
-        },
-        {
-          "name": "Thunderbolt 3",
-          "device": "en3",
-          "negotiated_speed_Mbps": null,
-          "full_duplex": null
-        },
-        {
-          "name": "Thunderbolt Bridge",
-          "device": "bridge0",
-          "negotiated_speed_Mbps": null,
-          "full_duplex": null
-        },
         {
           "name": "Wi-Fi",
           "device": "en0",
@@ -90,10 +48,10 @@
       "target": "192.168.1.1",
       "packets_sent": 10,
       "packet_loss_pct": 0.0,
-      "min_ms": 1.859,
-      "avg_ms": 5.808,
-      "max_ms": 7.386,
-      "jitter_ms": 1.438
+      "min_ms": 1.838,
+      "avg_ms": 5.301,
+      "max_ms": 6.953,
+      "jitter_ms": 1.569
     },
     "mtu": {
       "target": "192.168.1.1",
@@ -102,62 +60,6 @@
       "warning": null
     },
     "interfaces": [
-      {
-        "name": "Ethernet Adapter (en4)",
-        "device": "en4",
-        "type": "Ethernet",
-        "negotiated_speed_Mbps": null,
-        "full_duplex": null,
-        "ip_address": null
-      },
-      {
-        "name": "Ethernet Adapter (en5)",
-        "device": "en5",
-        "type": "Ethernet",
-        "negotiated_speed_Mbps": null,
-        "full_duplex": null,
-        "ip_address": null
-      },
-      {
-        "name": "Ethernet Adapter (en6)",
-        "device": "en6",
-        "type": "Ethernet",
-        "negotiated_speed_Mbps": null,
-        "full_duplex": null,
-        "ip_address": null
-      },
-      {
-        "name": "en1",
-        "device": "en1",
-        "type": "Ethernet",
-        "negotiated_speed_Mbps": null,
-        "full_duplex": null,
-        "ip_address": null
-      },
-      {
-        "name": "en2",
-        "device": "en2",
-        "type": "Ethernet",
-        "negotiated_speed_Mbps": null,
-        "full_duplex": null,
-        "ip_address": null
-      },
-      {
-        "name": "en3",
-        "device": "en3",
-        "type": "Ethernet",
-        "negotiated_speed_Mbps": null,
-        "full_duplex": null,
-        "ip_address": null
-      },
-      {
-        "name": "Thunderbolt Bridge",
-        "device": "bridge0",
-        "type": "Thunderbolt",
-        "negotiated_speed_Mbps": null,
-        "full_duplex": null,
-        "ip_address": null
-      },
       {
         "name": "Wi-Fi",
         "device": "en0",
@@ -188,22 +90,22 @@
       "samples": [
         {
           "host": "github.com",
-          "resolve_ms": 36.77,
+          "resolve_ms": 42.91,
           "success": true
         },
         {
           "host": "google.com",
-          "resolve_ms": 1.57,
+          "resolve_ms": 18.62,
           "success": true
         },
         {
           "host": "cloudflare.com",
-          "resolve_ms": 18.47,
+          "resolve_ms": 16.48,
           "success": true
         }
       ],
-      "avg_resolve_ms": 18.94,
-      "max_resolve_ms": 36.77
+      "avg_resolve_ms": 26.0,
+      "max_resolve_ms": 42.91
     },
     "tcp_window": {
       "auto_tuning": null,
@@ -217,7 +119,7 @@
         {
           "hop": 1,
           "ip": "192.168.1.1",
-          "avg_ms": 2.33
+          "avg_ms": 2.83
         }
       ],
       "error": null
@@ -228,7 +130,7 @@
   "bottleneck_hints": [],
   "run_history": [
     {
-      "timestamp": "2026-05-11T01:27:42.504831+00:00",
+      "timestamp": "2026-05-11T01:47:59.149591+00:00",
       "os": "macos",
       "layers_run": [
         "hardware",

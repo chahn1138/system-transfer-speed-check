@@ -30,6 +30,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from probe.platform_utils import detect_os, hostname, os_version, python_version
 from probe.hardware        import probe_hardware
 from probe.network         import probe_network
+from probe.protocols       import probe_protocols
 from artifact.writer       import load_artifact, save_artifact, append_run, add_bottleneck_hint
 from artifact.aggregate    import build_aggregate, print_comparison
 from report.summarize      import print_summary
@@ -96,12 +97,19 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Delete this host's artifact before running (start fresh)",
     )
+    p.add_argument(
+        "--payload-mb",
+        type=int,
+        default=256,
+        metavar="MB",
+        help="Size of the test payload in MB for protocol benchmarks (default: 256)",
+    )
     return p.parse_args()
 
 
 def resolve_layers(layers_arg: str) -> list:
     if layers_arg.strip().lower() == "all":
-        return ["hardware", "network"]   # implemented phases
+        return ["hardware", "network", "protocols"]   # implemented phases
     return [l.strip().lower() for l in layers_arg.split(",") if l.strip()]
 
 
@@ -214,6 +222,65 @@ def _analyse_network(artifact: dict) -> None:
             )
 
 
+def _analyse_protocols(artifact: dict) -> None:
+    results = artifact.get("protocol_results", [])
+    if not results:
+        return
+
+    # Find the fastest and slowest successful local benchmarks
+    local_ok = [r for r in results if r.get("direction") == "local" and r.get("throughput_MBps")]
+    net_ok   = [r for r in results if r.get("direction") == "send"  and r.get("throughput_MBps")]
+
+    if local_ok:
+        slowest = min(local_ok, key=lambda r: r["throughput_MBps"])
+        fastest = max(local_ok, key=lambda r: r["throughput_MBps"])
+        if slowest["throughput_MBps"] < 500:
+            add_bottleneck_hint(
+                artifact, layer="protocols.local",
+                observation=(
+                    f"{slowest['protocol']} local copy: {slowest['throughput_MBps']:.0f} MB/s "
+                    f"— slower than expected for modern SSD storage."
+                ),
+                confidence="medium",
+                suggested_action=(
+                    "Check disk health and available space; run Layer 1 disk probes to compare "
+                    "sequential throughput vs protocol overhead."
+                ),
+            )
+
+    if net_ok:
+        for r in net_ok:
+            hw   = artifact.get("hardware_baseline", {})
+            nics = hw.get("nic", {}).get("interfaces", [])
+            link_mbps = max((n.get("negotiated_speed_Mbps") or 0 for n in nics), default=0)
+            if link_mbps and r["throughput_Mbps"] is not None:
+                efficiency = r["throughput_Mbps"] / link_mbps * 100
+                if efficiency < 40:
+                    add_bottleneck_hint(
+                        artifact, layer=f"protocols.{r['protocol']}",
+                        observation=(
+                            f"{r['protocol']} to {r['target']}: {r['throughput_MBps']:.1f} MB/s "
+                            f"({efficiency:.0f}% of {link_mbps} Mbps link). "
+                            "Significant protocol or encryption overhead."
+                        ),
+                        confidence="medium",
+                        suggested_action=(
+                            "Compare scp vs rsync-ssh vs robocopy-unc to isolate whether "
+                            "the bottleneck is encryption CPU cost, TCP tuning, or SMB overhead."
+                        ),
+                    )
+
+    # Flag any benchmark errors
+    errors = [r for r in results if r.get("error")]
+    for r in errors:
+        add_bottleneck_hint(
+            artifact, layer=f"protocols.{r['protocol']}",
+            observation=f"{r['protocol']} benchmark failed: {r['error'][:120]}",
+            confidence="high",
+            suggested_action="Ensure the tool is installed and (for network tests) SSH key auth is configured.",
+        )
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main() -> int:
@@ -249,6 +316,8 @@ def main() -> int:
     print(f"    Layers : {', '.join(layers)}")
     if args.target:
         print(f"    Target : {args.target}")
+    if "protocols" in layers:
+        print(f"    Payload: {args.payload_mb} MB")
     print(f"    Output : {artifact_path}")
 
     # Clear old hints so analysis is always fresh for this run
@@ -268,8 +337,18 @@ def main() -> int:
         _analyse_network(artifact)
         print("[Layer 2] Complete.")
 
+    # ── Layer 3: Protocol Benchmarks ─────────────────────────────────────────
+    if "protocols" in layers:
+        print("\n[Layer 3] Protocol Benchmarks — running...")
+        new_results = probe_protocols(target=args.target, payload_mb=args.payload_mb)
+        # Append to existing protocol_results (accumulate across runs)
+        existing = artifact.get("protocol_results", [])
+        artifact["protocol_results"] = existing + new_results
+        _analyse_protocols(artifact)
+        print("[Layer 3] Complete.")
+
     # ── Stubs for future phases ───────────────────────────────────────────────
-    for layer, phase in [("protocols", 3), ("tuning", 4), ("live", 5)]:
+    for layer, phase in [("tuning", 4), ("live", 5)]:
         if layer in layers:
             print(f"\n[Layer {phase}] {layer.title()} — not yet implemented (Phase {phase})")
 

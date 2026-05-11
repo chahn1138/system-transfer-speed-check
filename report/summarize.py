@@ -150,6 +150,28 @@ def print_summary(artifact: Dict[str, Any]) -> None:
                 ms = f"{h['avg_ms']} ms" if h.get("avg_ms") else "*"
                 print(f"    hop {h['hop']:2}  {h.get('ip', '*'):<18} {ms}")
 
+    # ── Layer 3: Protocol Benchmarks ──────────────────────────────────────────
+    proto_results = artifact.get("protocol_results", [])
+    if proto_results:
+        print(f"\n{_LINE}")
+        print("  Layer 3 — Protocol Benchmarks")
+        print(_LINE)
+        # Show the most recent run of each protocol
+        seen: dict = {}
+        for r in proto_results:
+            seen[r.get("protocol")] = r   # last write wins → most recent
+        print(f"  {'Protocol':<18} {'Direction':<9} {'Target':<18} {'MB/s':>8}  Notes/Error")
+        print(f"  {'-'*18} {'-'*9} {'-'*18} {'-'*8}  {'-'*24}")
+        for proto, r in seen.items():
+            direction = r.get("direction", "?")
+            tgt       = r.get("target") or "—"
+            mbps      = r.get("throughput_MBps")
+            mbps_str  = f"{mbps:>8.1f}" if mbps else f"{'—':>8}"
+            err       = r.get("error")
+            note      = (err or r.get("notes") or "")[:50]
+            flag      = "  ⚠ ERROR" if err else ""
+            print(f"  {proto:<18} {direction:<9} {tgt:<18} {mbps_str}  {note}{flag}")
+
     # ── Bottleneck Hints ──────────────────────────────────────────────────────
     hints = artifact.get("bottleneck_hints", [])
     if hints:

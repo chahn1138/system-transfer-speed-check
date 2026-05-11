@@ -39,12 +39,21 @@ def build_aggregate(hosts_dir: str) -> Dict[str, Any]:
     return {"hosts": hosts, "comparison": comparison}
 
 
+def _latest_per_protocol(results: list) -> dict:
+    """Return most recent result dict keyed by protocol name."""
+    seen = {}
+    for r in results:
+        seen[r.get("protocol")] = r   # last write wins
+    return seen
+
+
 def _compare_hosts(hosts: Dict[str, Any]) -> Dict[str, Any]:
     """Derive cross-host comparisons from the loaded artifacts."""
     disk_speeds  = {}
     cpu_info     = {}
     ram_info     = {}
     nic_speeds   = {}
+    proto_bench  = {}
 
     for hostname, artifact in hosts.items():
         hw   = artifact.get("hardware_baseline", {})
@@ -79,15 +88,19 @@ def _compare_hosts(hosts: Dict[str, Any]) -> Dict[str, Any]:
             "filtered_note": nic.get("filtered_note"),
         }
 
+        proto_results = artifact.get("protocol_results", [])
+        proto_bench[hostname] = _latest_per_protocol(proto_results)
+
     # Find fastest disk per metric across all hosts
     fastest_read  = _find_best(disk_speeds, "read_MBps",  higher_is_better=True)
     fastest_write = _find_best(disk_speeds, "write_MBps", higher_is_better=True)
 
     return {
-        "disk_speeds":    disk_speeds,
-        "cpu_info":       cpu_info,
-        "ram_info":       ram_info,
-        "nic_speeds":     nic_speeds,
+        "disk_speeds":        disk_speeds,
+        "cpu_info":           cpu_info,
+        "ram_info":           ram_info,
+        "nic_speeds":         nic_speeds,
+        "proto_bench":        proto_bench,
         "fastest_disk_read":  fastest_read,
         "fastest_disk_write": fastest_write,
     }
@@ -177,6 +190,56 @@ def print_comparison(aggregate: Dict[str, Any]) -> None:
             print("    (no active NICs found)")
         if fn:
             print(f"    ↳ {fn}")
+
+    # ── Protocol Benchmarks ───────────────────────────────────────────────────
+    proto_bench = comparison.get("proto_bench", {})
+    # Collect all protocol names seen across any host
+    all_protocols: List[str] = []
+    for host_protos in proto_bench.values():
+        for p in host_protos:
+            if p not in all_protocols:
+                all_protocols.append(p)
+
+    if all_protocols:
+        print(f"\n{_LINE}")
+        print("  Layer 3 — Protocol Benchmarks (most recent run per protocol)")
+        print(_LINE)
+        col_w = max(14, max(len(h) for h in host_names) + 2)
+        header = f"  {'Protocol':<18} {'Dir':<7}"
+        for h in host_names:
+            header += f"  {h[:col_w]:<{col_w}}"
+        print(header)
+        print(f"  {'-'*18} {'-'*7}" + f"  {'-'*col_w}" * len(host_names))
+        for proto in all_protocols:
+            # Determine direction from any host that has it
+            direction = "?"
+            for h in host_names:
+                r = proto_bench.get(h, {}).get(proto)
+                if r:
+                    direction = r.get("direction", "?")
+                    break
+            row = f"  {proto:<18} {direction:<7}"
+            best_mbps = None
+            best_host = None
+            for h in host_names:
+                r = proto_bench.get(h, {}).get(proto)
+                if r and r.get("throughput_MBps") is not None:
+                    if best_mbps is None or r["throughput_MBps"] > best_mbps:
+                        best_mbps = r["throughput_MBps"]
+                        best_host = h
+            for h in host_names:
+                r = proto_bench.get(h, {}).get(proto)
+                if not r:
+                    cell = "—"
+                elif r.get("error"):
+                    cell = "ERROR"
+                elif r.get("throughput_MBps") is not None:
+                    flag = " ★" if h == best_host and len(host_names) > 1 else ""
+                    cell = f"{r['throughput_MBps']:.1f} MB/s{flag}"
+                else:
+                    cell = "—"
+                row += f"  {cell:<{col_w}}"
+            print(row)
 
     # ── Bottleneck hints ─────────────────────────────────────────────────────
     all_hints = []

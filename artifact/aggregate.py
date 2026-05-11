@@ -113,7 +113,11 @@ def _compare_hosts(hosts: Dict[str, Any]) -> Dict[str, Any]:
         live_results = artifact.get("live_results", [])
         seen: Dict[str, Any] = {}
         for r in live_results:
-            seen[r.get("scenario", "?")] = r
+            scenario = r.get("scenario", "?")
+            # Skip sentinel error records — they carry no telemetry
+            if scenario == "psutil-missing":
+                continue
+            seen[scenario] = r
         live_summary[hostname] = seen
 
     # Find fastest disk per metric across all hosts
@@ -245,7 +249,9 @@ def print_comparison(aggregate: Dict[str, Any]) -> None:
                     mbps    = r.get("throughput_MBps")
                     tel     = r.get("telemetry") or {}
                     cpu_pk  = tel.get("cpu_pct_peak")
-                    cell = f"{mbps:.0f} MB/s cpu={cpu_pk}%" if mbps and cpu_pk else "—"
+                    mbps_s  = f"{mbps:.0f} MB/s" if mbps is not None else "?"
+                    cpu_s   = f" cpu={cpu_pk}%" if cpu_pk is not None else ""
+                    cell    = f"{mbps_s}{cpu_s}" if mbps is not None else "—"
                 row += f"  {cell:<{col_w}}"
             print(row)
 

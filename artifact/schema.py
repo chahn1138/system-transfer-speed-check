@@ -30,6 +30,7 @@ def new_artifact() -> dict:
         "network_topology":  {},
         "protocol_results":  [],
         "tuning_results":    [],
+        "live_results":      [],
         "bottleneck_hints":  [],
         "run_history":       [],
     }

@@ -32,6 +32,7 @@ from probe.hardware        import probe_hardware
 from probe.network         import probe_network
 from probe.protocols       import probe_protocols
 from probe.tuning          import probe_tuning
+from probe.live            import probe_live
 from artifact.writer       import load_artifact, save_artifact, append_run, add_bottleneck_hint
 from artifact.aggregate    import build_aggregate, print_comparison
 from report.summarize      import print_summary
@@ -110,7 +111,7 @@ def parse_args() -> argparse.Namespace:
 
 def resolve_layers(layers_arg: str) -> list:
     if layers_arg.strip().lower() == "all":
-        return ["hardware", "network", "protocols", "tuning"]   # implemented phases
+        return ["hardware", "network", "protocols", "tuning", "live"]   # implemented phases
     return [l.strip().lower() for l in layers_arg.split(",") if l.strip()]
 
 
@@ -376,6 +377,87 @@ def _analyse_tuning(artifact: dict) -> None:
             )
 
 
+def _analyse_live(artifact: dict) -> None:
+    results = artifact.get("live_results", [])
+    ok = [r for r in results if not r.get("error") and r.get("telemetry")]
+    if not ok:
+        return
+
+    for r in ok:
+        tel      = r["telemetry"]
+        mbps     = r.get("throughput_MBps")
+        scenario = r.get("scenario", "?")
+
+        # CPU saturation: peak > 85% during transfer
+        cpu_peak = tel.get("cpu_pct_peak")
+        if cpu_peak is not None and cpu_peak > 85:
+            add_bottleneck_hint(
+                artifact, layer="live.cpu",
+                observation=(
+                    f"CPU peaked at {cpu_peak}% during '{scenario}' transfer "
+                    f"({mbps} MB/s). Transfer is CPU-bound."
+                ),
+                confidence="high",
+                suggested_action=(
+                    "Enable hardware offload if available. For encrypted transfers, "
+                    "verify AES-NI is active. Consider reducing thread count or "
+                    "switching to a less CPU-intensive protocol."
+                ),
+            )
+
+        # Check if any single core is pinned (per-core peak > 95%)
+        per_core = tel.get("cpu_pct_per_core_peak") or []
+        pinned   = [i for i, v in enumerate(per_core) if v is not None and v > 95]
+        if pinned:
+            add_bottleneck_hint(
+                artifact, layer="live.cpu",
+                observation=(
+                    f"Core(s) {pinned} pinned at >95% during '{scenario}'. "
+                    "Single-threaded bottleneck in the transfer pipeline."
+                ),
+                confidence="high",
+                suggested_action=(
+                    "Increase parallelism — use multi-threaded robocopy /MT:n, "
+                    "rclone --transfers, or rsync with parallel invocations."
+                ),
+            )
+
+        # Disk write saturation: measured write peak vs Layer 1 sequential ceiling
+        hw_write = (artifact.get("hardware_baseline", {})
+                    .get("disk", {}).get("sequential_write_MBps"))
+        dw_peak  = tel.get("disk_write_MBps_peak")
+        if hw_write and dw_peak and dw_peak > hw_write * 0.90:
+            add_bottleneck_hint(
+                artifact, layer="live.disk",
+                observation=(
+                    f"Disk write during '{scenario}' hit {dw_peak} MB/s — "
+                    f"{dw_peak/hw_write*100:.0f}% of sequential ceiling ({hw_write} MB/s). "
+                    "Disk is the bottleneck."
+                ),
+                confidence="high",
+                suggested_action=(
+                    "Disk is saturated. Reducing thread count will not help. "
+                    "Consider faster storage or splitting writes across multiple volumes."
+                ),
+            )
+
+        # Memory pressure: available < 2 GB at any point
+        mem_min = tel.get("mem_available_GB_min")
+        if mem_min is not None and mem_min < 2.0:
+            add_bottleneck_hint(
+                artifact, layer="live.memory",
+                observation=(
+                    f"Available memory dropped to {mem_min} GB during '{scenario}'. "
+                    "OS write buffer eviction may stall transfers."
+                ),
+                confidence="medium",
+                suggested_action=(
+                    "Close other applications before large transfers. "
+                    "Consider increasing virtual memory / swap."
+                ),
+            )
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main() -> int:
@@ -451,10 +533,14 @@ def main() -> int:
         _analyse_tuning(artifact)
         print("[Layer 4] Complete.")
 
-    # ── Stubs for future phases ───────────────────────────────────────────────
-    for layer, phase in [("live", 5)]:
-        if layer in layers:
-            print(f"\n[Layer {phase}] {layer.title()} — not yet implemented (Phase {phase})")
+    # ── Layer 5: Live Telemetry ─────────────────────────────────────────────
+    if "live" in layers:
+        print("\n[Layer 5] Live Telemetry — running...")
+        new_live   = probe_live(payload_mb=args.payload_mb)
+        existing_l = artifact.get("live_results", [])
+        artifact["live_results"] = existing_l + new_live
+        _analyse_live(artifact)
+        print("[Layer 5] Complete.")
 
     # ── Persist ───────────────────────────────────────────────────────────────
     artifact["host"] = {

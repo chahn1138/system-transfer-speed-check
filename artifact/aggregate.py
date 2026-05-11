@@ -107,6 +107,15 @@ def _compare_hosts(hosts: Dict[str, Any]) -> Dict[str, Any]:
                 }
         tuning_summary[hostname] = host_tuning
 
+    # Live telemetry summary per host (most recent of each scenario)
+    live_summary: Dict[str, Any] = {}
+    for hostname, artifact in hosts.items():
+        live_results = artifact.get("live_results", [])
+        seen: Dict[str, Any] = {}
+        for r in live_results:
+            seen[r.get("scenario", "?")] = r
+        live_summary[hostname] = seen
+
     # Find fastest disk per metric across all hosts
     fastest_read  = _find_best(disk_speeds, "read_MBps",  higher_is_better=True)
     fastest_write = _find_best(disk_speeds, "write_MBps", higher_is_better=True)
@@ -118,6 +127,7 @@ def _compare_hosts(hosts: Dict[str, Any]) -> Dict[str, Any]:
         "nic_speeds":         nic_speeds,
         "proto_bench":        proto_bench,
         "tuning_summary":     tuning_summary,
+        "live_summary":       live_summary,
         "fastest_disk_read":  fastest_read,
         "fastest_disk_write": fastest_write,
     }
@@ -207,6 +217,37 @@ def print_comparison(aggregate: Dict[str, Any]) -> None:
             print("    (no active NICs found)")
         if fn:
             print(f"    ↳ {fn}")
+
+    # ── Live Telemetry ───────────────────────────────────────────────────────
+    live_summary = comparison.get("live_summary", {})
+    all_scenarios: List[str] = []
+    for host_live in live_summary.values():
+        for s in host_live:
+            if s not in all_scenarios:
+                all_scenarios.append(s)
+    if all_scenarios:
+        print(f"\n{_LINE}")
+        print("  Layer 5 — Live Telemetry (most recent per scenario)")
+        print(_LINE)
+        col_w  = max(14, max(len(h) for h in host_names) + 2)
+        header = f"  {'Scenario':<26}"
+        for h in host_names:
+            header += f"  {h[:col_w]:<{col_w}}"
+        print(header)
+        print(f"  {'-'*26}" + f"  {'-'*col_w}" * len(host_names))
+        for scenario in all_scenarios:
+            row = f"  {scenario:<26}"
+            for h in host_names:
+                r = live_summary.get(h, {}).get(scenario)
+                if not r or r.get("error"):
+                    cell = "—"
+                else:
+                    mbps    = r.get("throughput_MBps")
+                    tel     = r.get("telemetry") or {}
+                    cpu_pk  = tel.get("cpu_pct_peak")
+                    cell = f"{mbps:.0f} MB/s cpu={cpu_pk}%" if mbps and cpu_pk else "—"
+                row += f"  {cell:<{col_w}}"
+            print(row)
 
     # ── Tuning Sweeps ─────────────────────────────────────────────────────────
     tuning_summary = comparison.get("tuning_summary", {})

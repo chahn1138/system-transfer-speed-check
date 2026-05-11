@@ -150,6 +150,33 @@ def print_summary(artifact: Dict[str, Any]) -> None:
                 ms = f"{h['avg_ms']} ms" if h.get("avg_ms") else "*"
                 print(f"    hop {h['hop']:2}  {h.get('ip', '*'):<18} {ms}")
 
+    # ── Layer 5: Live Telemetry ────────────────────────────────────────────────
+    live = artifact.get("live_results", [])
+    if live:
+        print(f"\n{_LINE}")
+        print("  Layer 5 — Live Telemetry")
+        print(_LINE)
+        print(f"  {'Scenario':<26} {'MB/s':>8}  {'CPU pk%':>7}  {'DiskW pk':>9}  {'MemAvail min':>12}")
+        print(f"  {'-'*26} {'-'*8}  {'-'*7}  {'-'*9}  {'-'*12}")
+        # Show only the most recent run of each scenario
+        seen: dict = {}
+        for r in live:
+            seen[r.get("scenario", "?")] = r
+        for scenario, r in seen.items():
+            if r.get("error"):
+                print(f"  {scenario:<26} ERROR: {r['error'][:40]}")
+                continue
+            mbps    = r.get("throughput_MBps")
+            tel     = r.get("telemetry") or {}
+            cpu_pk  = tel.get("cpu_pct_peak")
+            dw_pk   = tel.get("disk_write_MBps_peak")
+            mem_min = tel.get("mem_available_GB_min")
+            mbps_s  = f"{mbps:>8.1f}" if mbps  else f"{'?':>8}"
+            cpu_s   = f"{cpu_pk:>7.1f}" if cpu_pk  else f"{'?':>7}"
+            dw_s    = f"{dw_pk:>7.1f} MB/s" if dw_pk  else f"{'?':>9}"
+            mem_s   = f"{mem_min:>10.1f} GB" if mem_min else f"{'?':>12}"
+            print(f"  {scenario:<26} {mbps_s}  {cpu_s}  {dw_s}  {mem_s}")
+
     # ── Layer 4: Tuning Sweeps ────────────────────────────────────────────────
     tuning = artifact.get("tuning_results", [])
     if tuning:

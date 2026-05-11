@@ -168,11 +168,32 @@
   ],
   "bottleneck_hints": [
     {
-      "timestamp": "2026-05-11T02:06:18.100336+00:00",
-      "layer": "protocols.local",
-      "observation": "python-copy local copy: 145 MB/s \u2014 slower than expected for modern SSD storage.",
+      "timestamp": "2026-05-11T02:47:20.607137+00:00",
+      "layer": "tuning.block_size",
+      "observation": "Block size has a 5.4x throughput impact: 4 KB = 36 MB/s, 8192 KB = 194 MB/s.",
+      "confidence": "high",
+      "suggested_action": "Configure transfer tools to use ~8192 KB blocks. robocopy /256, rsync --block-size, rclone --s3-chunk-size."
+    },
+    {
+      "timestamp": "2026-05-11T02:47:20.607137+00:00",
+      "layer": "tuning.thread_count",
+      "observation": "4 parallel streams are 1.7x faster than single-stream (354 vs 208 MB/s).",
+      "confidence": "high",
+      "suggested_action": "Use 4 threads in your transfer tool. robocopy /MT:4, rclone --transfers=4."
+    },
+    {
+      "timestamp": "2026-05-11T02:47:20.607137+00:00",
+      "layer": "tuning.sync_mode",
+      "observation": "Per-write fsync is 8x slower than buffered I/O (48 vs 384 MB/s). Storage commit latency is high.",
       "confidence": "medium",
-      "suggested_action": "Check disk health and available space; run Layer 1 disk probes to compare sequential throughput vs protocol overhead."
+      "suggested_action": "Prefer buffered transfer tools. Avoid /J (unbuffered) robocopy, O_SYNC/O_DSYNC open flags, or tools that fsync after every chunk."
+    },
+    {
+      "timestamp": "2026-05-11T02:47:20.607137+00:00",
+      "layer": "tuning.file_profile",
+      "observation": "Small-file penalty: 1070.4x throughput difference \u2014 4096\u00d71KB = 1 MB/s vs 32\u00d71024KB = 567 MB/s.",
+      "confidence": "high",
+      "suggested_action": "Bundle small files into tar/zip before transferring, or use rclone with --transfers and --checkers tuned up for small-file workloads."
     }
   ],
   "run_history": [
@@ -192,6 +213,280 @@
         "protocols"
       ],
       "summary": "Ran protocols probe(s) on windows"
+    },
+    {
+      "timestamp": "2026-05-11T02:47:20.607137+00:00",
+      "os": "windows",
+      "layers_run": [
+        "tuning"
+      ],
+      "summary": "Ran tuning probe(s) on windows"
+    }
+  ],
+  "tuning_results": [
+    {
+      "timestamp": "2026-05-11T02:46:36.005267+00:00",
+      "sweep": "block_size",
+      "variable": "block_size_KB",
+      "value": 4,
+      "payload_size_MB": 32,
+      "duration_s": 0.892,
+      "throughput_MBps": 35.85,
+      "notes": "sequential write, 4 KB blocks, fsync",
+      "error": null
+    },
+    {
+      "timestamp": "2026-05-11T02:46:36.539054+00:00",
+      "sweep": "block_size",
+      "variable": "block_size_KB",
+      "value": 16,
+      "payload_size_MB": 32,
+      "duration_s": 0.52,
+      "throughput_MBps": 61.48,
+      "notes": "sequential write, 16 KB blocks, fsync",
+      "error": null
+    },
+    {
+      "timestamp": "2026-05-11T02:46:36.914174+00:00",
+      "sweep": "block_size",
+      "variable": "block_size_KB",
+      "value": 64,
+      "payload_size_MB": 32,
+      "duration_s": 0.357,
+      "throughput_MBps": 89.55,
+      "notes": "sequential write, 64 KB blocks, fsync",
+      "error": null
+    },
+    {
+      "timestamp": "2026-05-11T02:46:37.101208+00:00",
+      "sweep": "block_size",
+      "variable": "block_size_KB",
+      "value": 256,
+      "payload_size_MB": 32,
+      "duration_s": 0.185,
+      "throughput_MBps": 172.82,
+      "notes": "sequential write, 256 KB blocks, fsync",
+      "error": null
+    },
+    {
+      "timestamp": "2026-05-11T02:46:37.330099+00:00",
+      "sweep": "block_size",
+      "variable": "block_size_KB",
+      "value": 1024,
+      "payload_size_MB": 32,
+      "duration_s": 0.203,
+      "throughput_MBps": 158.01,
+      "notes": "sequential write, 1 MB blocks, fsync",
+      "error": null
+    },
+    {
+      "timestamp": "2026-05-11T02:46:37.553431+00:00",
+      "sweep": "block_size",
+      "variable": "block_size_KB",
+      "value": 4096,
+      "payload_size_MB": 32,
+      "duration_s": 0.213,
+      "throughput_MBps": 150.22,
+      "notes": "sequential write, 4 MB blocks, fsync",
+      "error": null
+    },
+    {
+      "timestamp": "2026-05-11T02:46:37.756915+00:00",
+      "sweep": "block_size",
+      "variable": "block_size_KB",
+      "value": 8192,
+      "payload_size_MB": 32,
+      "duration_s": 0.165,
+      "throughput_MBps": 194.17,
+      "notes": "sequential write, 8 MB blocks, fsync",
+      "error": null
+    },
+    {
+      "timestamp": "2026-05-11T02:46:37.916752+00:00",
+      "sweep": "thread_count",
+      "variable": "thread_count",
+      "value": 1,
+      "payload_size_MB": 32.0,
+      "duration_s": 0.154,
+      "throughput_MBps": 208.02,
+      "notes": "1 parallel writer(s), 32 MB total",
+      "error": null
+    },
+    {
+      "timestamp": "2026-05-11T02:46:38.041831+00:00",
+      "sweep": "thread_count",
+      "variable": "thread_count",
+      "value": 2,
+      "payload_size_MB": 32.0,
+      "duration_s": 0.098,
+      "throughput_MBps": 325.72,
+      "notes": "2 parallel writer(s), 32 MB total",
+      "error": null
+    },
+    {
+      "timestamp": "2026-05-11T02:46:38.141939+00:00",
+      "sweep": "thread_count",
+      "variable": "thread_count",
+      "value": 4,
+      "payload_size_MB": 32.0,
+      "duration_s": 0.09,
+      "throughput_MBps": 354.31,
+      "notes": "4 parallel writer(s), 32 MB total",
+      "error": null
+    },
+    {
+      "timestamp": "2026-05-11T02:46:38.263168+00:00",
+      "sweep": "thread_count",
+      "variable": "thread_count",
+      "value": 8,
+      "payload_size_MB": 32.0,
+      "duration_s": 0.096,
+      "throughput_MBps": 333.61,
+      "notes": "8 parallel writer(s), 32 MB total",
+      "error": null
+    },
+    {
+      "timestamp": "2026-05-11T02:46:38.501831+00:00",
+      "sweep": "compression",
+      "variable": "compression_mode",
+      "value": "raw_random",
+      "payload_size_MB": 32,
+      "duration_s": 0.16,
+      "throughput_MBps": 200.22,
+      "notes": "uncompressed random bytes \u2014 incompressible baseline",
+      "error": null
+    },
+    {
+      "timestamp": "2026-05-11T02:46:38.642471+00:00",
+      "sweep": "compression",
+      "variable": "compression_mode",
+      "value": "raw_compressible",
+      "payload_size_MB": 32,
+      "duration_s": 0.131,
+      "throughput_MBps": 244.84,
+      "notes": "uncompressed repetitive bytes \u2014 OS/FS compression baseline",
+      "error": null
+    },
+    {
+      "timestamp": "2026-05-11T02:46:47.017708+00:00",
+      "sweep": "compression",
+      "variable": "compression_mode",
+      "value": "zlib_random",
+      "payload_size_MB": 32,
+      "duration_s": 8.354,
+      "throughput_MBps": 3.83,
+      "notes": "zlib(random) \u2014 compression adds CPU cost, no size benefit",
+      "error": null
+    },
+    {
+      "timestamp": "2026-05-11T02:46:47.370712+00:00",
+      "sweep": "compression",
+      "variable": "compression_mode",
+      "value": "zlib_compressible",
+      "payload_size_MB": 32,
+      "duration_s": 0.341,
+      "throughput_MBps": 93.88,
+      "notes": "zlib(repetitive) \u2014 maximum compression benefit case",
+      "error": null
+    },
+    {
+      "timestamp": "2026-05-11T02:46:47.459086+00:00",
+      "sweep": "sync_mode",
+      "variable": "sync_mode",
+      "value": "buffered",
+      "payload_size_MB": 32,
+      "duration_s": 0.083,
+      "throughput_MBps": 384.43,
+      "notes": "OS page cache only \u2014 no fsync (fast but not durable)",
+      "error": null
+    },
+    {
+      "timestamp": "2026-05-11T02:46:47.616992+00:00",
+      "sweep": "sync_mode",
+      "variable": "sync_mode",
+      "value": "fsync_end",
+      "payload_size_MB": 32,
+      "duration_s": 0.139,
+      "throughput_MBps": 229.88,
+      "notes": "buffered write + one fsync at close (normal mode)",
+      "error": null
+    },
+    {
+      "timestamp": "2026-05-11T02:46:48.295377+00:00",
+      "sweep": "sync_mode",
+      "variable": "sync_mode",
+      "value": "fsync_each",
+      "payload_size_MB": 32,
+      "duration_s": 0.67,
+      "throughput_MBps": 47.73,
+      "notes": "fsync after every 256 KB chunk (synchronous I/O simulation)",
+      "error": null
+    },
+    {
+      "timestamp": "2026-05-11T02:46:55.830800+00:00",
+      "sweep": "file_profile",
+      "variable": "file_count\u00d7size",
+      "value": "4096\u00d71KB",
+      "payload_size_MB": 4.0,
+      "duration_s": 7.522,
+      "throughput_MBps": 0.53,
+      "notes": "4096 files \u00d7 1 KB = 4 MB",
+      "error": null
+    },
+    {
+      "timestamp": "2026-05-11T02:47:06.433982+00:00",
+      "sweep": "file_profile",
+      "variable": "file_count\u00d7size",
+      "value": "4096\u00d74KB",
+      "payload_size_MB": 16.0,
+      "duration_s": 9.641,
+      "throughput_MBps": 1.66,
+      "notes": "4096 files \u00d7 4 KB = 16 MB",
+      "error": null
+    },
+    {
+      "timestamp": "2026-05-11T02:47:18.216344+00:00",
+      "sweep": "file_profile",
+      "variable": "file_count\u00d7size",
+      "value": "2048\u00d716KB",
+      "payload_size_MB": 32.0,
+      "duration_s": 4.909,
+      "throughput_MBps": 6.52,
+      "notes": "2048 files \u00d7 16 KB = 32 MB",
+      "error": null
+    },
+    {
+      "timestamp": "2026-05-11T02:47:20.047971+00:00",
+      "sweep": "file_profile",
+      "variable": "file_count\u00d7size",
+      "value": "512\u00d764KB",
+      "payload_size_MB": 32.0,
+      "duration_s": 0.493,
+      "throughput_MBps": 64.96,
+      "notes": "512 files \u00d7 64 KB = 32 MB",
+      "error": null
+    },
+    {
+      "timestamp": "2026-05-11T02:47:20.405390+00:00",
+      "sweep": "file_profile",
+      "variable": "file_count\u00d7size",
+      "value": "128\u00d7256KB",
+      "payload_size_MB": 32.0,
+      "duration_s": 0.124,
+      "throughput_MBps": 258.45,
+      "notes": "128 files \u00d7 256 KB = 32 MB",
+      "error": null
+    },
+    {
+      "timestamp": "2026-05-11T02:47:20.591722+00:00",
+      "sweep": "file_profile",
+      "variable": "file_count\u00d7size",
+      "value": "32\u00d71024KB",
+      "payload_size_MB": 32.0,
+      "duration_s": 0.056,
+      "throughput_MBps": 567.3,
+      "notes": "32 files \u00d7 1024 KB = 32 MB",
+      "error": null
     }
   ]
 }

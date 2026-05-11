@@ -29,6 +29,7 @@ def new_artifact() -> dict:
         "hardware_baseline": {},
         "network_topology":  {},
         "protocol_results":  [],
+        "tuning_results":    [],
         "bottleneck_hints":  [],
         "run_history":       [],
     }

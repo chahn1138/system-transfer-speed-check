@@ -91,6 +91,22 @@ def _compare_hosts(hosts: Dict[str, Any]) -> Dict[str, Any]:
         proto_results = artifact.get("protocol_results", [])
         proto_bench[hostname] = _latest_per_protocol(proto_results)
 
+    # Collect tuning sweep best-per-sweep per host
+    tuning_summary: Dict[str, Any] = {}
+    for hostname, artifact in hosts.items():
+        tuning_results = artifact.get("tuning_results", [])
+        host_tuning: Dict[str, Any] = {}
+        for sweep in ("block_size", "thread_count", "compression", "sync_mode", "file_profile"):
+            ok = [r for r in tuning_results if r.get("sweep") == sweep
+                  and r.get("throughput_MBps") and not r.get("error")]
+            if ok:
+                best = max(ok, key=lambda r: r["throughput_MBps"])
+                host_tuning[sweep] = {
+                    "best_value":      best["value"],
+                    "best_MBps":       best["throughput_MBps"],
+                }
+        tuning_summary[hostname] = host_tuning
+
     # Find fastest disk per metric across all hosts
     fastest_read  = _find_best(disk_speeds, "read_MBps",  higher_is_better=True)
     fastest_write = _find_best(disk_speeds, "write_MBps", higher_is_better=True)
@@ -101,6 +117,7 @@ def _compare_hosts(hosts: Dict[str, Any]) -> Dict[str, Any]:
         "ram_info":           ram_info,
         "nic_speeds":         nic_speeds,
         "proto_bench":        proto_bench,
+        "tuning_summary":     tuning_summary,
         "fastest_disk_read":  fastest_read,
         "fastest_disk_write": fastest_write,
     }
@@ -190,6 +207,39 @@ def print_comparison(aggregate: Dict[str, Any]) -> None:
             print("    (no active NICs found)")
         if fn:
             print(f"    ↳ {fn}")
+
+    # ── Tuning Sweeps ─────────────────────────────────────────────────────────
+    tuning_summary = comparison.get("tuning_summary", {})
+    all_sweeps = ["block_size", "thread_count", "compression", "sync_mode", "file_profile"]
+    sweep_labels = {
+        "block_size":   "Block Size",
+        "thread_count": "Thread Count",
+        "compression":  "Compression",
+        "sync_mode":    "Sync Mode",
+        "file_profile": "File Profile",
+    }
+    has_tuning = any(tuning_summary.get(h) for h in host_names)
+    if has_tuning:
+        print(f"\n{_LINE}")
+        print("  Layer 4 — Tuning Sweeps (best result per sweep)")
+        print(_LINE)
+        col_w  = max(14, max(len(h) for h in host_names) + 2)
+        header = f"  {'Sweep':<18}"
+        for h in host_names:
+            header += f"  {h[:col_w]:<{col_w}}"
+        print(header)
+        print(f"  {'-'*18}" + f"  {'-'*col_w}" * len(host_names))
+        for sweep in all_sweeps:
+            label = sweep_labels.get(sweep, sweep)
+            row   = f"  {label:<18}"
+            for h in host_names:
+                entry = (tuning_summary.get(h) or {}).get(sweep)
+                if entry:
+                    cell = f"{entry['best_value']} @ {entry['best_MBps']:.0f} MB/s"
+                else:
+                    cell = "—"
+                row += f"  {cell:<{col_w}}"
+            print(row)
 
     # ── Protocol Benchmarks ───────────────────────────────────────────────────
     proto_bench = comparison.get("proto_bench", {})

@@ -31,6 +31,7 @@ from probe.platform_utils import detect_os, hostname, os_version, python_version
 from probe.hardware        import probe_hardware
 from probe.network         import probe_network
 from probe.protocols       import probe_protocols
+from probe.tuning          import probe_tuning
 from artifact.writer       import load_artifact, save_artifact, append_run, add_bottleneck_hint
 from artifact.aggregate    import build_aggregate, print_comparison
 from report.summarize      import print_summary
@@ -109,7 +110,7 @@ def parse_args() -> argparse.Namespace:
 
 def resolve_layers(layers_arg: str) -> list:
     if layers_arg.strip().lower() == "all":
-        return ["hardware", "network", "protocols"]   # implemented phases
+        return ["hardware", "network", "protocols", "tuning"]   # implemented phases
     return [l.strip().lower() for l in layers_arg.split(",") if l.strip()]
 
 
@@ -281,6 +282,100 @@ def _analyse_protocols(artifact: dict) -> None:
         )
 
 
+def _analyse_tuning(artifact: dict) -> None:
+    results = artifact.get("tuning_results", [])
+    if not results:
+        return
+
+    # ── Block size: find the sweet spot ──────────────────────────────────────
+    bs_ok = [r for r in results if r.get("sweep") == "block_size"
+             and r.get("throughput_MBps") and not r.get("error")]
+    if bs_ok:
+        best_bs  = max(bs_ok, key=lambda r: r["throughput_MBps"])
+        worst_bs = min(bs_ok, key=lambda r: r["throughput_MBps"])
+        ratio    = best_bs["throughput_MBps"] / max(worst_bs["throughput_MBps"], 0.01)
+        if ratio > 2:
+            add_bottleneck_hint(
+                artifact, layer="tuning.block_size",
+                observation=(
+                    f"Block size has a {ratio:.1f}x throughput impact: "
+                    f"{worst_bs['value']} KB = {worst_bs['throughput_MBps']:.0f} MB/s, "
+                    f"{best_bs['value']} KB = {best_bs['throughput_MBps']:.0f} MB/s."
+                ),
+                confidence="high",
+                suggested_action=(
+                    f"Configure transfer tools to use ~{best_bs['value']} KB blocks. "
+                    "robocopy /256, rsync --block-size, rclone --s3-chunk-size."
+                ),
+            )
+
+    # ── Thread count: flag if more threads helped significantly ───────────────
+    tc_ok   = [r for r in results if r.get("sweep") == "thread_count"
+               and r.get("throughput_MBps") and not r.get("error")]
+    if tc_ok:
+        single  = next((r for r in tc_ok if r["value"] == 1), None)
+        best_tc = max(tc_ok, key=lambda r: r["throughput_MBps"])
+        if single and best_tc["value"] != 1:
+            gain = best_tc["throughput_MBps"] / max(single["throughput_MBps"], 0.01)
+            if gain > 1.3:
+                add_bottleneck_hint(
+                    artifact, layer="tuning.thread_count",
+                    observation=(
+                        f"{best_tc['value']} parallel streams are {gain:.1f}x faster "
+                        f"than single-stream ({best_tc['throughput_MBps']:.0f} vs "
+                        f"{single['throughput_MBps']:.0f} MB/s)."
+                    ),
+                    confidence="high",
+                    suggested_action=(
+                        f"Use {best_tc['value']} threads in your transfer tool. "
+                        f"robocopy /MT:{best_tc['value']}, rclone --transfers={best_tc['value']}."
+                    ),
+                )
+
+    # ── Sync mode: flag high fsync cost ──────────────────────────────────────
+    sm_ok = {r["value"]: r for r in results if r.get("sweep") == "sync_mode"
+             and r.get("throughput_MBps") and not r.get("error")}
+    if "buffered" in sm_ok and "fsync_each" in sm_ok:
+        ratio = sm_ok["buffered"]["throughput_MBps"] / max(sm_ok["fsync_each"]["throughput_MBps"], 0.01)
+        if ratio > 5:
+            add_bottleneck_hint(
+                artifact, layer="tuning.sync_mode",
+                observation=(
+                    f"Per-write fsync is {ratio:.0f}x slower than buffered I/O "
+                    f"({sm_ok['fsync_each']['throughput_MBps']:.0f} vs "
+                    f"{sm_ok['buffered']['throughput_MBps']:.0f} MB/s). "
+                    "Storage commit latency is high."
+                ),
+                confidence="medium",
+                suggested_action=(
+                    "Prefer buffered transfer tools. Avoid /J (unbuffered) robocopy, "
+                    "O_SYNC/O_DSYNC open flags, or tools that fsync after every chunk."
+                ),
+            )
+
+    # ── File profile: small-file penalty ─────────────────────────────────────
+    fp_ok = [r for r in results if r.get("sweep") == "file_profile"
+             and r.get("throughput_MBps") and not r.get("error")]
+    if fp_ok:
+        large_f = max(fp_ok, key=lambda r: r["throughput_MBps"])
+        small_f = min(fp_ok, key=lambda r: r["throughput_MBps"])
+        ratio   = large_f["throughput_MBps"] / max(small_f["throughput_MBps"], 0.01)
+        if ratio > 3:
+            add_bottleneck_hint(
+                artifact, layer="tuning.file_profile",
+                observation=(
+                    f"Small-file penalty: {ratio:.1f}x throughput difference — "
+                    f"{small_f['value']} = {small_f['throughput_MBps']:.0f} MB/s vs "
+                    f"{large_f['value']} = {large_f['throughput_MBps']:.0f} MB/s."
+                ),
+                confidence="high",
+                suggested_action=(
+                    "Bundle small files into tar/zip before transferring, or use rclone "
+                    "with --transfers and --checkers tuned up for small-file workloads."
+                ),
+            )
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main() -> int:
@@ -347,8 +442,17 @@ def main() -> int:
         _analyse_protocols(artifact)
         print("[Layer 3] Complete.")
 
+    # ── Layer 4: Tuning Sweeps ────────────────────────────────────────────────
+    if "tuning" in layers:
+        print("\n[Layer 4] Tuning Sweeps — running...")
+        new_tuning = probe_tuning(payload_mb=args.payload_mb)
+        existing_t = artifact.get("tuning_results", [])
+        artifact["tuning_results"] = existing_t + new_tuning
+        _analyse_tuning(artifact)
+        print("[Layer 4] Complete.")
+
     # ── Stubs for future phases ───────────────────────────────────────────────
-    for layer, phase in [("tuning", 4), ("live", 5)]:
+    for layer, phase in [("live", 5)]:
         if layer in layers:
             print(f"\n[Layer {phase}] {layer.title()} — not yet implemented (Phase {phase})")
 

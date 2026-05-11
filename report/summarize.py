@@ -150,6 +150,38 @@ def print_summary(artifact: Dict[str, Any]) -> None:
                 ms = f"{h['avg_ms']} ms" if h.get("avg_ms") else "*"
                 print(f"    hop {h['hop']:2}  {h.get('ip', '*'):<18} {ms}")
 
+    # ── Layer 4: Tuning Sweeps ────────────────────────────────────────────────
+    tuning = artifact.get("tuning_results", [])
+    if tuning:
+        print(f"\n{_LINE}")
+        print("  Layer 4 — Tuning Sweeps")
+        print(_LINE)
+        # Group by sweep, show best result for each
+        sweeps: dict = {}
+        for r in tuning:
+            s = r.get("sweep", "?")
+            if s not in sweeps:
+                sweeps[s] = []
+            sweeps[s].append(r)
+
+        sweep_labels = {
+            "block_size":   "Block Size",
+            "thread_count": "Thread Count",
+            "compression":  "Compression",
+            "sync_mode":    "Sync Mode",
+            "file_profile": "File Profile",
+        }
+        for sweep_key, sweep_results in sweeps.items():
+            label = sweep_labels.get(sweep_key, sweep_key)
+            ok    = [r for r in sweep_results if r.get("throughput_MBps") and not r.get("error")]
+            if not ok:
+                print(f"  {label:<18} : (no results)")
+                continue
+            best  = max(ok, key=lambda r: r["throughput_MBps"])
+            worst = min(ok, key=lambda r: r["throughput_MBps"])
+            print(f"  {label:<18} : best  {best['value']} @ {best['throughput_MBps']:>8.1f} MB/s")
+            print(f"  {'':<18}   worst {worst['value']} @ {worst['throughput_MBps']:>8.1f} MB/s")
+
     # ── Layer 3: Protocol Benchmarks ──────────────────────────────────────────
     proto_results = artifact.get("protocol_results", [])
     if proto_results:

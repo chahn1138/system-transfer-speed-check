@@ -126,8 +126,41 @@
     },
     "bandwidth_delay_product": null
   },
-  "protocol_results": [],
-  "bottleneck_hints": [],
+  "protocol_results": [
+    {
+      "timestamp": "2026-05-11T02:11:34.793261+00:00",
+      "protocol": "python-copy",
+      "direction": "local",
+      "target": null,
+      "payload_size_MB": 256,
+      "duration_s": 0.067,
+      "throughput_MBps": 3831.98,
+      "throughput_Mbps": 30655.8,
+      "notes": "shutil.copy2 + fsync; same volume \u2014 pure OS copy baseline",
+      "error": null
+    },
+    {
+      "timestamp": "2026-05-11T02:11:35.772751+00:00",
+      "protocol": "rsync",
+      "direction": "local",
+      "target": null,
+      "payload_size_MB": 256,
+      "duration_s": 0.976,
+      "throughput_MBps": 262.37,
+      "throughput_Mbps": 2099.0,
+      "notes": "rsync local copy (no SSH, --inplace)",
+      "error": null
+    }
+  ],
+  "bottleneck_hints": [
+    {
+      "timestamp": "2026-05-11T02:11:35.779961+00:00",
+      "layer": "protocols.local",
+      "observation": "rsync local copy: 262 MB/s \u2014 slower than expected for modern SSD storage.",
+      "confidence": "medium",
+      "suggested_action": "Check disk health and available space; run Layer 1 disk probes to compare sequential throughput vs protocol overhead."
+    }
+  ],
   "run_history": [
     {
       "timestamp": "2026-05-11T01:53:44.085441+00:00",
@@ -137,6 +170,14 @@
         "network"
       ],
       "summary": "Ran hardware, network probe(s) on macos"
+    },
+    {
+      "timestamp": "2026-05-11T02:11:35.780021+00:00",
+      "os": "macos",
+      "layers_run": [
+        "protocols"
+      ],
+      "summary": "Ran protocols probe(s) on macos"
     }
   ]
 }

@@ -458,6 +458,9 @@ def _nic_macos() -> Dict[str, Any]:
 
     # Split into per-device blocks
     import re as _re
+    VIRTUAL_PREFIXES = ("utun", "awdl", "llw", "anpi", "vmenet", "lo", "ap")
+    VIRTUAL_EXACT    = {"ap1"}
+
     blocks = _re.split(r"(?m)^(?=\w)", ifc_out)
     interfaces = []
     for block in blocks:
@@ -465,7 +468,9 @@ def _nic_macos() -> Dict[str, Any]:
         if not dev_m:
             continue
         dev = dev_m.group(1)
-        if dev == "lo0" or "LOOPBACK" in block:
+        if "LOOPBACK" in block:
+            continue
+        if dev in VIRTUAL_EXACT or any(dev.startswith(p) for p in VIRTUAL_PREFIXES):
             continue
 
         speed_mbps  = None

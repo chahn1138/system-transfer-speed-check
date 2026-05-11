@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "generated_on": "2026-05-11T00:01:00.081488+00:00",
+  "generated_on": "2026-05-11T01:26:09.195995+00:00",
   "host": {
     "hostname": "chahnmac.local",
     "os": "macos",
@@ -9,8 +9,8 @@
   },
   "hardware_baseline": {
     "disk": {
-      "sequential_read_MBps": 13798.06,
-      "sequential_write_MBps": 7189.3,
+      "sequential_read_MBps": 13899.7,
+      "sequential_write_MBps": 7110.81,
       "device_type": "SSD",
       "interface": null,
       "test_file_size_MB": 256,
@@ -27,24 +27,6 @@
     },
     "nic": {
       "interfaces": [
-        {
-          "name": "anpi1",
-          "device": "anpi1",
-          "negotiated_speed_Mbps": null,
-          "full_duplex": null
-        },
-        {
-          "name": "anpi2",
-          "device": "anpi2",
-          "negotiated_speed_Mbps": null,
-          "full_duplex": null
-        },
-        {
-          "name": "anpi0",
-          "device": "anpi0",
-          "negotiated_speed_Mbps": null,
-          "full_duplex": null
-        },
         {
           "name": "Ethernet Adapter (en4)",
           "device": "en4",
@@ -88,86 +70,14 @@
           "full_duplex": null
         },
         {
-          "name": "ap1",
-          "device": "ap1",
-          "negotiated_speed_Mbps": null,
-          "full_duplex": false
-        },
-        {
           "name": "Wi-Fi",
           "device": "en0",
           "negotiated_speed_Mbps": null,
           "full_duplex": null
         },
         {
-          "name": "awdl0",
-          "device": "awdl0",
-          "negotiated_speed_Mbps": null,
-          "full_duplex": null
-        },
-        {
-          "name": "llw0",
-          "device": "llw0",
-          "negotiated_speed_Mbps": null,
-          "full_duplex": false
-        },
-        {
-          "name": "utun0",
-          "device": "utun0",
-          "negotiated_speed_Mbps": null,
-          "full_duplex": null
-        },
-        {
-          "name": "utun1",
-          "device": "utun1",
-          "negotiated_speed_Mbps": null,
-          "full_duplex": null
-        },
-        {
-          "name": "utun2",
-          "device": "utun2",
-          "negotiated_speed_Mbps": null,
-          "full_duplex": null
-        },
-        {
-          "name": "utun3",
-          "device": "utun3",
-          "negotiated_speed_Mbps": null,
-          "full_duplex": null
-        },
-        {
-          "name": "utun4",
-          "device": "utun4",
-          "negotiated_speed_Mbps": null,
-          "full_duplex": null
-        },
-        {
-          "name": "utun5",
-          "device": "utun5",
-          "negotiated_speed_Mbps": null,
-          "full_duplex": null
-        },
-        {
-          "name": "utun6",
-          "device": "utun6",
-          "negotiated_speed_Mbps": null,
-          "full_duplex": null
-        },
-        {
-          "name": "vmenet0",
-          "device": "vmenet0",
-          "negotiated_speed_Mbps": null,
-          "full_duplex": null
-        },
-        {
           "name": "bridge100",
           "device": "bridge100",
-          "negotiated_speed_Mbps": null,
-          "full_duplex": null
-        },
-        {
-          "name": "utun7",
-          "device": "utun7",
           "negotiated_speed_Mbps": null,
           "full_duplex": null
         }
@@ -180,10 +90,10 @@
       "target": "192.168.1.1",
       "packets_sent": 10,
       "packet_loss_pct": 0.0,
-      "min_ms": 2.237,
-      "avg_ms": 6.214,
-      "max_ms": 9.91,
-      "jitter_ms": 1.819
+      "min_ms": 4.757,
+      "avg_ms": 6.14,
+      "max_ms": 7.272,
+      "jitter_ms": 0.752
     },
     "mtu": {
       "target": "192.168.1.1",
@@ -278,22 +188,22 @@
       "samples": [
         {
           "host": "github.com",
-          "resolve_ms": 47.51,
+          "resolve_ms": 34.36,
           "success": true
         },
         {
           "host": "google.com",
-          "resolve_ms": 34.37,
+          "resolve_ms": 1.22,
           "success": true
         },
         {
           "host": "cloudflare.com",
-          "resolve_ms": 23.55,
+          "resolve_ms": 1.48,
           "success": true
         }
       ],
-      "avg_resolve_ms": 35.14,
-      "max_resolve_ms": 47.51
+      "avg_resolve_ms": 12.35,
+      "max_resolve_ms": 34.36
     },
     "tcp_window": {
       "auto_tuning": null,
@@ -307,7 +217,7 @@
         {
           "hop": 1,
           "ip": "192.168.1.1",
-          "avg_ms": 2.11
+          "avg_ms": 2.83
         }
       ],
       "error": null
@@ -318,7 +228,7 @@
   "bottleneck_hints": [],
   "run_history": [
     {
-      "timestamp": "2026-05-11T00:01:14.788822+00:00",
+      "timestamp": "2026-05-11T01:26:23.811781+00:00",
       "os": "macos",
       "layers_run": [
         "hardware",

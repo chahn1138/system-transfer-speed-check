@@ -462,18 +462,5 @@
       "error": null
     }
   ],
-  "live_results": [
-    {
-      "timestamp": "2026-05-11T03:14:02.897840+00:00",
-      "scenario": "psutil-missing",
-      "error": "psutil not installed \u2014 run: pip install psutil",
-      "telemetry": null
-    },
-    {
-      "timestamp": "2026-05-11T03:20:45.447938+00:00",
-      "scenario": "psutil-missing",
-      "error": "psutil not installed \u2014 run: pip install psutil",
-      "telemetry": null
-    }
-  ]
+  "live_results": []
 }

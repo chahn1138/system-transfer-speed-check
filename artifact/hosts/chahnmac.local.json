@@ -152,29 +152,7 @@
       "error": null
     }
   ],
-  "bottleneck_hints": [
-    {
-      "timestamp": "2026-05-11T02:51:36.869917+00:00",
-      "layer": "tuning.block_size",
-      "observation": "Block size has a 4.8x throughput impact: 4 KB = 611 MB/s, 256 KB = 2942 MB/s.",
-      "confidence": "high",
-      "suggested_action": "Configure transfer tools to use ~256 KB blocks. robocopy /256, rsync --block-size, rclone --s3-chunk-size."
-    },
-    {
-      "timestamp": "2026-05-11T02:51:36.869926+00:00",
-      "layer": "tuning.thread_count",
-      "observation": "8 parallel streams are 1.8x faster than single-stream (5659 vs 3186 MB/s).",
-      "confidence": "high",
-      "suggested_action": "Use 8 threads in your transfer tool. robocopy /MT:8, rclone --transfers=8."
-    },
-    {
-      "timestamp": "2026-05-11T02:51:36.869934+00:00",
-      "layer": "tuning.file_profile",
-      "observation": "Small-file penalty: 225.2x throughput difference \u2014 4096\u00d71KB = 12 MB/s vs 32\u00d71024KB = 2794 MB/s.",
-      "confidence": "high",
-      "suggested_action": "Bundle small files into tar/zip before transferring, or use rclone with --transfers and --checkers tuned up for small-file workloads."
-    }
-  ],
+  "bottleneck_hints": [],
   "run_history": [
     {
       "timestamp": "2026-05-11T01:53:44.085441+00:00",
@@ -200,6 +178,14 @@
         "tuning"
       ],
       "summary": "Ran tuning probe(s) on macos"
+    },
+    {
+      "timestamp": "2026-05-11T03:14:02.898018+00:00",
+      "os": "macos",
+      "layers_run": [
+        "live"
+      ],
+      "summary": "Ran live probe(s) on macos"
     }
   ],
   "tuning_results": [
@@ -466,6 +452,14 @@
       "throughput_MBps": 2794.33,
       "notes": "32 files \u00d7 1024 KB = 32 MB",
       "error": null
+    }
+  ],
+  "live_results": [
+    {
+      "timestamp": "2026-05-11T03:14:02.897840+00:00",
+      "scenario": "psutil-missing",
+      "error": "psutil not installed \u2014 run: pip install psutil",
+      "telemetry": null
     }
   ]
 }

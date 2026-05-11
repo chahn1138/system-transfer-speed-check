@@ -554,47 +554,43 @@ def _parse_iwconfig(output: str) -> Dict[str, Any]:
 
 
 def _wifi_macos() -> Dict[str, Any]:
-    airport = (
-        "/System/Library/PrivateFrameworks/Apple80211.framework"
-        "/Versions/Current/Resources/airport"
+    import json as _json
+    out, _, rc = run_command(
+        ["system_profiler", "SPAirPortDataType", "-json"], timeout=15
     )
-    out, _, rc = run_command([airport, "-I"], timeout=10)
-    if rc != 0 or "AirPort: Off" in out:
+    if rc != 0 or not out:
         return {"connected": False}
-    data: Dict[str, Any] = {"connected": False}
-    for line in out.splitlines():
-        s = line.strip()
-        if ":" not in s:
-            continue
-        k, _, v = s.partition(":")
-        k, v = k.strip().lower(), v.strip()
-        if k == "ssid":
-            data["ssid"]      = v
-            data["connected"] = True
-        elif k == "agrctlrssi":
-            try:
-                data["rssi_dBm"] = int(v)
-            except ValueError:
-                pass
-        elif k == "channel":
-            # e.g. "6,+1" or "36,80"
-            ch_str = v.split(",")[0]
-            try:
-                ch = int(ch_str)
-                data["channel"] = ch
-                data["band"]    = "5 GHz" if ch > 14 else "2.4 GHz"
-            except ValueError:
-                pass
-        elif k == "lastassocstatus":
-            pass
-        elif k == "op mode":
-            data["standard"] = v
-        elif "maxrate" in k or "lastrate" in k:
-            try:
-                data["tx_rate_Mbps"] = float(v)
-            except ValueError:
-                pass
-    return data
+    try:
+        sp = _json.loads(out)
+    except _json.JSONDecodeError:
+        return {"connected": False}
+
+    for airport in sp.get("SPAirPortDataType", []):
+        for iface in airport.get("spairport_airport_interfaces", []):
+            current = iface.get("spairport_current_network_information")
+            if not current:
+                continue
+            data: Dict[str, Any] = {"connected": True}
+            data["ssid"] = current.get("_name")
+            data["standard"] = current.get("spairport_network_phymode")
+            data["tx_rate_Mbps"] = current.get("spairport_network_rate")
+
+            # "149 (5GHz, 80MHz)" → channel + band
+            ch_str = current.get("spairport_network_channel", "")
+            ch_m = re.match(r"(\d+)\s*\((\d+GHz)", ch_str)
+            if ch_m:
+                data["channel"] = int(ch_m.group(1))
+                data["band"]    = ch_m.group(2).replace("GHz", " GHz")
+
+            # "-60 dBm / -91 dBm" → rssi
+            sig = current.get("spairport_signal_noise", "")
+            sig_m = re.match(r"(-?\d+)\s*dBm", sig)
+            if sig_m:
+                data["rssi_dBm"] = int(sig_m.group(1))
+
+            return data
+
+    return {"connected": False}
 
 
 # ═════════════════════════════════════════════════════════════════════════════

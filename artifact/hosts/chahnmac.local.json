@@ -48,10 +48,10 @@
       "target": "192.168.1.1",
       "packets_sent": 10,
       "packet_loss_pct": 0.0,
-      "min_ms": 3.421,
-      "avg_ms": 5.357,
-      "max_ms": 6.15,
-      "jitter_ms": 0.716
+      "min_ms": 2.468,
+      "avg_ms": 5.312,
+      "max_ms": 7.418,
+      "jitter_ms": 1.807
     },
     "mtu": {
       "target": "192.168.1.1",
@@ -82,30 +82,30 @@
       "ssid": "<redacted>",
       "band": "5 GHz",
       "channel": 149,
-      "rssi_dBm": -60,
+      "rssi_dBm": -51,
       "standard": "802.11ac",
-      "tx_rate_Mbps": 468
+      "tx_rate_Mbps": 650
     },
     "dns": {
       "samples": [
         {
           "host": "github.com",
-          "resolve_ms": 51.62,
+          "resolve_ms": 36.57,
           "success": true
         },
         {
           "host": "google.com",
-          "resolve_ms": 16.42,
+          "resolve_ms": 20.41,
           "success": true
         },
         {
           "host": "cloudflare.com",
-          "resolve_ms": 18.0,
+          "resolve_ms": 18.48,
           "success": true
         }
       ],
-      "avg_resolve_ms": 28.68,
-      "max_resolve_ms": 51.62
+      "avg_resolve_ms": 25.15,
+      "max_resolve_ms": 36.57
     },
     "tcp_window": {
       "auto_tuning": null,
@@ -119,7 +119,7 @@
         {
           "hop": 1,
           "ip": "192.168.1.1",
-          "avg_ms": 1.79
+          "avg_ms": 1.77
         }
       ],
       "error": null
@@ -218,6 +218,14 @@
         "hardware"
       ],
       "summary": "Ran hardware probe(s) on macos"
+    },
+    {
+      "timestamp": "2026-05-12T00:57:01.698040+00:00",
+      "os": "macos",
+      "layers_run": [
+        "network"
+      ],
+      "summary": "Ran network probe(s) on macos"
     }
   ],
   "tuning_results": [

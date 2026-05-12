@@ -34,8 +34,9 @@ from probe.protocols       import probe_protocols
 from probe.tuning          import probe_tuning
 from probe.live            import probe_live
 from artifact.writer       import load_artifact, save_artifact, append_run, add_bottleneck_hint
-from artifact.aggregate    import build_aggregate, print_comparison
-from report.summarize      import print_summary
+from artifact.aggregate    import build_aggregate
+from report.rich_compare   import print_comparison
+from report.rich_summary   import print_summary
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 

@@ -234,9 +234,12 @@ def _analyse_protocols(artifact: dict) -> None:
     net_ok   = [r for r in results if r.get("direction") == "send"  and r.get("throughput_MBps")]
 
     if local_ok:
-        slowest = min(local_ok, key=lambda r: r["throughput_MBps"])
+        # rsync has inherent checksum overhead (~200-300 MB/s is normal); exclude it
+        # from the generic "slow" threshold check to avoid false positives.
+        non_rsync_local = [r for r in local_ok if r.get("protocol") != "rsync"]
+        slowest = min(non_rsync_local, key=lambda r: r["throughput_MBps"]) if non_rsync_local else None
         fastest = max(local_ok, key=lambda r: r["throughput_MBps"])
-        if slowest["throughput_MBps"] < 500:
+        if slowest and slowest["throughput_MBps"] < 500:
             add_bottleneck_hint(
                 artifact, layer="protocols.local",
                 observation=(
